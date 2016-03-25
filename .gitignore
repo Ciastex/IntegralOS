@@ -50,3 +50,6 @@ local.properties
 # Code Recommenders
 .recommenders/
 
+# Debug/Release artifacts
+Debug/
+Release/
