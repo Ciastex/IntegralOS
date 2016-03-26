@@ -5,15 +5,11 @@
  * * * */
 
 #include <stdint.h>
-#include <integral/kernel.h>
+#include <string.h>
 
-#include "arch/x86/include/vga.h"
+#include <integral/kernel.h>
+#include <display/vga.h>
 
 void kernel_init(void) {
-    initialize_screen();
-    clear_screen();
-
-    draw_char_at('X', 40, 12);
-
     return;
 }

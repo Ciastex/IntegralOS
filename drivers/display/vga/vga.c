@@ -1,23 +1,20 @@
 /*
  * File name: vga.c
- * Description: x86 VGA implementation.
+ * Description: Provides VGA driver implementation.
  *
  * * * */
-
-#include "../include/vga.h"
+#include <stddef.h>
+#include <display/vga.h>
 
 static vga_attrib_t make_vga_attrib(vga_color_t, vga_color_t);
 static vga_entry_t make_vga_entry(char, vga_attrib_t);
 
-static int32_t was_initialized = 0;
 static uint16_t *terminal_buffer = (uint16_t *)VGA_BUFFER;
-static vga_attrib_t screen_attribute;
+static vga_attrib_t screen_attribute = NULL;
 
-void initialize_screen(void) {
-    if(!was_initialized) {
-        screen_attribute = make_vga_attrib(COLOR_WHITE, COLOR_BLACK);
-        was_initialized = 1;
-    }
+void initialize_screen_defaults(void) {
+    screen_attribute = make_vga_attrib(COLOR_WHITE, COLOR_BLACK);
+    clear_screen();
 }
 
 void clear_screen(void) {

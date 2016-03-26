@@ -1,6 +1,6 @@
 /*
  * File name: vga.h
- * Description: X86 VGA interface.
+ * Description: X86 VGA driver interface.
  *
  * * * */
 
@@ -39,5 +39,6 @@ typedef uint32_t vga_coord_t;
 void initialize_screen(void);
 void clear_screen(void);
 void draw_char_at(char, vga_coord_t x, vga_coord_t y);
+
 
 #endif /* VGA_H_ */
