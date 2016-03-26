@@ -3,10 +3,10 @@
  * Description: Provides VGA driver implementation.
  *
  * * * */
-#include <stddef.h>
 #include <string.h>
 
 #include <display/vga.h>
+#include <io/port_io.h>
 
 static vga_attrib_t make_vga_attribute(vga_color_t, vga_color_t);
 static vga_entry_t make_vga_entry(char, vga_attrib_t);
@@ -14,7 +14,12 @@ static vga_entry_t make_vga_entry(char, vga_attrib_t);
 static uint16_t *terminal_buffer = (uint16_t *)VGA_BUFFER;
 static vga_attrib_t screen_attribute;
 
+static vga_coord_t cursor_x = 0;
+static vga_coord_t cursor_y = 0;
+
 void initialize_screen_defaults(void) {
+    set_cursor_position(0, 0);
+
     screen_attribute = make_vga_attribute(COLOR_WHITE, COLOR_BLACK);
     clear_screen();
 }
@@ -33,6 +38,11 @@ void put_char_at(char character, vga_coord_t x, vga_coord_t y) {
     terminal_buffer[target_coord] = make_vga_entry(character, screen_attribute);
 }
 
+void put_char_at_cursor(char character) {
+    const vga_coord_t target_coord = cursor_y * VGA_WIDTH + cursor_x;
+    terminal_buffer[target_coord] = make_vga_entry(character, screen_attribute);
+}
+
 void set_vga_colors(vga_color_t foreground, vga_color_t background) {
     screen_attribute = make_vga_attribute(foreground, background);
 }
@@ -41,10 +51,33 @@ vga_color_info_t get_current_vga_colors(void) {
     vga_color_info_t color_info;
     memset(&color_info, 0, sizeof(vga_color_info_t));
 
-    color_info.foreground = screen_attribute >> 4;
+    color_info.foreground = (screen_attribute >> 4) & 0x0F;
     color_info.background = screen_attribute & 0x0F;
 
     return color_info;
+}
+
+void set_cursor_position(vga_coord_t x, vga_coord_t y) {
+    cursor_x = x;
+    cursor_y = y;
+
+    vga_coord_t target_coord = (y * VGA_WIDTH) + x;
+
+    outb(VGA_BASE_PORT, VGA_CMD_CURSOR_LOW);
+    outb(VGA_DATA_PORT, (uint8_t)(target_coord & 0xFF));
+
+    outb(VGA_BASE_PORT, VGA_CMD_CURSOR_HIGH);
+    outb(VGA_DATA_PORT, (uint8_t)((target_coord >> 8) & 0xFF));
+}
+
+vga_cursor_info_t get_cursor_position(void) {
+    vga_cursor_info_t cursor_info;
+    memset(&cursor_info, 0, sizeof(vga_cursor_info_t));
+
+    cursor_info.x_pos = cursor_x;
+    cursor_info.y_pos = cursor_y;
+
+    return cursor_info;
 }
 
 static vga_attrib_t make_vga_attribute(vga_color_t foreground, vga_color_t background) {

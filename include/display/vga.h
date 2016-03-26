@@ -13,6 +13,16 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 80
 
+#define VGA_CMD_CURSOR_LOW 0x0F
+#define VGA_CMD_CURSOR_HIGH 0x0E
+
+#define VGA_BASE_PORT 0x3D4
+#define VGA_DATA_PORT 0x3D5
+
+typedef uint8_t vga_attrib_t;
+typedef uint16_t vga_entry_t;
+typedef uint16_t vga_coord_t;
+
 typedef enum vga_color {
     COLOR_BLACK = 0,
     COLOR_BLUE = 1,
@@ -37,15 +47,19 @@ typedef struct vga_color_info {
     vga_color_t background;
 } vga_color_info_t;
 
-typedef uint8_t vga_attrib_t;
-typedef uint16_t vga_entry_t;
-typedef uint32_t vga_coord_t;
+typedef struct vga_cursor_info {
+    vga_coord_t x_pos;
+    vga_coord_t y_pos;
+} vga_cursor_info_t;
 
-void initialize_screen(void);
+void initialize_screen_defaults(void);
 void clear_screen(void);
-void put_char_at(char, vga_coord_t x, vga_coord_t y);
+void put_char_at(char character, vga_coord_t x, vga_coord_t y);
+void put_char_at_cursor(char character);
 void set_vga_colors(vga_color_t foreground, vga_color_t background);
+void set_cursor_position(vga_coord_t x, vga_coord_t y);
 vga_color_info_t get_current_vga_colors(void);
+vga_cursor_info_t get_cursor_position(void);
 
 
 #endif /* VGA_H_ */
