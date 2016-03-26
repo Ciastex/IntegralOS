@@ -28,7 +28,7 @@ void clear_screen(void) {
     }
 }
 
-void draw_char_at(char character, vga_coord_t x, vga_coord_t y) {
+void put_char_at(char character, vga_coord_t x, vga_coord_t y) {
     const vga_coord_t target_coord = y * VGA_WIDTH + x;
     terminal_buffer[target_coord] = make_vga_entry(character, screen_attribute);
 }

@@ -43,7 +43,7 @@ typedef uint32_t vga_coord_t;
 
 void initialize_screen(void);
 void clear_screen(void);
-void draw_char_at(char, vga_coord_t x, vga_coord_t y);
+void put_char_at(char, vga_coord_t x, vga_coord_t y);
 void set_vga_colors(vga_color_t foreground, vga_color_t background);
 vga_color_info_t *get_current_vga_colors(void);
 
