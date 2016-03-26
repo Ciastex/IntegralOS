@@ -12,7 +12,7 @@ static vga_attrib_t make_vga_attribute(vga_color_t, vga_color_t);
 static vga_entry_t make_vga_entry(char, vga_attrib_t);
 
 static uint16_t *terminal_buffer = (uint16_t *)VGA_BUFFER;
-static vga_attrib_t screen_attribute = NULL;
+static vga_attrib_t screen_attribute;
 
 void initialize_screen_defaults(void) {
     screen_attribute = make_vga_attribute(COLOR_WHITE, COLOR_BLACK);
@@ -37,14 +37,14 @@ void set_vga_colors(vga_color_t foreground, vga_color_t background) {
     screen_attribute = make_vga_attribute(foreground, background);
 }
 
-vga_color_info_t *get_current_vga_colors(void) {
+vga_color_info_t get_current_vga_colors(void) {
     vga_color_info_t color_info;
     memset(&color_info, 0, sizeof(vga_color_info_t));
 
     color_info.foreground = screen_attribute >> 4;
     color_info.background = screen_attribute & 0x0F;
 
-    return &color_info;
+    return color_info;
 }
 
 static vga_attrib_t make_vga_attribute(vga_color_t foreground, vga_color_t background) {
