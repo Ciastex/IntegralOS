@@ -32,6 +32,11 @@ typedef enum vga_color {
     COLOR_WHITE = 15
 } vga_color_t;
 
+typedef struct vga_color_info {
+    vga_color_t foreground;
+    vga_color_t background;
+} vga_color_info_t;
+
 typedef uint8_t vga_attrib_t;
 typedef uint16_t vga_entry_t;
 typedef uint32_t vga_coord_t;
@@ -39,6 +44,8 @@ typedef uint32_t vga_coord_t;
 void initialize_screen(void);
 void clear_screen(void);
 void draw_char_at(char, vga_coord_t x, vga_coord_t y);
+void set_vga_colors(vga_color_t foreground, vga_color_t background);
+vga_color_info_t *get_current_vga_colors(void);
 
 
 #endif /* VGA_H_ */
