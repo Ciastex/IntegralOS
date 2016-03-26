@@ -19,7 +19,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         return;
     }
 
-    write_line("This is a terminal test.\n\n\nMeow.");
+    write("\\]E\\[1R\\]D\\[2A\\]C\\]B\\]A\\[3I\\]B\\[4N\\]9\\X\\[5B\\[6O\\[7W\\[8S \\[9A\\[AR\\[BE \\[CF\\[DU\\[EN");
 
     return;
 }
