@@ -28,6 +28,9 @@ stack_top:
 .type _start, @function
 _start:
 	movl $stack_top, %esp
+
+	pushl %eax
+	pushl %ebx
 	call kernel_init
 
 	cli
