@@ -16,7 +16,6 @@
 #endif
 
 #define INTEGRAL_VERSION "0.01-280416"
-
-void panic(const char *message);
+#define INTEGRAL_COPYRIGHT "Copyright (C) 2016 \\[BCiastex\\X @ OverCR Systems"
 
 #endif /* KERNEL_H_ */

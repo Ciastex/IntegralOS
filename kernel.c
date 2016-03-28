@@ -10,51 +10,50 @@
 
 #include <boot/multiboot.h>
 #include <integral/kernel.h>
+#include <integral/panic.h>
 #include <integral/tty.h>
 #include <io/port_io.h>
 
 #include <hal/cpu.h>
 
+static void print_welcome_screen(void);
 static void init_gdt(void);
+static void init_idt(void);
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
-    if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-        panic("Not loaded by a multiboot-compliant bootloader.");
-    }
     init_terminal();
 
-    printf("\\[AIntegral OS \\Xv%s\n", INTEGRAL_VERSION);
-    printf("Preparing the operating system environment...\n\n");
+    if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+        kpanic("Not loaded by a multiboot-compliant bootloader.", 0);
+    } else {
+        print_welcome_screen();
 
-    init_gdt();
+        init_gdt();
+        init_idt();
 
-    return;
+        asm volatile ("int $0x00");
+
+        return;
+    }
 }
 
-void panic(const char *message) {
-    int32_t eax;
-    int32_t ebx;
-    int32_t ecx;
-    int32_t edx;
-
-    asm volatile("movl %%eax, %0" : "=r"(eax));
-    asm volatile("movl %%ebx, %0" : "=r"(ebx));
-    asm volatile("movl %%ecx, %0" : "=r"(ecx));
-    asm volatile("movl %%edx, %0" : "=r"(edx));
-
-    init_terminal();
-
-    write("[\\[4KERNEL PANIC\\X] The system has failed:\n");
-    printf("%s\n", message);
-    printf("EAX: 0x%08X ECX: 0x%08X\n", eax, ecx);
-    printf("EBX: 0x%08X EDX: 0x%08X", ebx, edx);
-
-    asm volatile("cli");
-    asm volatile("hlt");
+static void print_welcome_screen(void) {
+    printf("\\[AIntegral OS kernel\\Xv%s\n%s\n", INTEGRAL_VERSION, INTEGRAL_COPYRIGHT);
+    for(size_t i = 0; i < 40; i++) {
+        printf("-");
+    }
+    printf("\n");
+    printf("Preparing the operating system environment...\n\n");
 }
 
 static void init_gdt(void) {
     printf("Setting up the Global Descriptor Table... ");
     gdt_descriptor_t descriptor = init_global_descriptor_table();
+    printf("\\[2Loaded @\\X 0x%08X\n", descriptor.address);
+}
+
+static void init_idt(void) {
+    printf("Setting up the Interrupt Descriptor Table... ");
+    idt_descriptor_t descriptor = init_interrupt_descriptor_table();
     printf("\\[2Loaded @\\X 0x%08X\n", descriptor.address);
 }
