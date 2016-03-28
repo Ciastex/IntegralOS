@@ -15,4 +15,6 @@
 #error "This operating system kernel requires an i86 host machine."
 #endif
 
+void panic(const char *message);
+
 #endif /* KERNEL_H_ */
