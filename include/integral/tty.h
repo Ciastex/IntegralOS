@@ -10,5 +10,6 @@
 void init_terminal(void);
 void write_line(const char *string);
 void write(const char *string);
+void put_char(char character);
 
 #endif /* TTY_H_ */
