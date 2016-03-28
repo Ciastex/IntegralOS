@@ -100,6 +100,20 @@ vga_cursor_info_t get_cursor_position(void) {
     return cursor_info;
 }
 
+
+void scroll(void)
+{
+   for (size_t i = 0; i < (VGA_HEIGHT - 1) * VGA_WIDTH; i++)
+   {
+       terminal_buffer[i] = terminal_buffer[i + VGA_WIDTH];
+   }
+
+   for (size_t i = (VGA_HEIGHT - 1) * VGA_WIDTH; i < VGA_HEIGHT * VGA_WIDTH; i++)
+   {
+       terminal_buffer[i] = make_vga_entry(' ', screen_attribute);
+   }
+}
+
 static vga_attrib_t make_vga_attribute(vga_color_t foreground, vga_color_t background) {
     return (vga_attrib_t)(foreground | (background << 4));
 }

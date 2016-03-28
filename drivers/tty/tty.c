@@ -9,7 +9,6 @@
 #include <integral/tty.h>
 #include <display/vga.h>
 
-static void put_char(char character);
 static void put_newline(vga_cursor_info_t *cursor_info);
 static vga_color_t determine_output_color(char character);
 
@@ -67,7 +66,7 @@ void write(const char *string) {
     }
 }
 
-static void put_char(char character) {
+void put_char(char character) {
     vga_cursor_info_t cursor_info = get_cursor_position();
 
     if(character == '\n') {
@@ -93,6 +92,7 @@ static void put_newline(vga_cursor_info_t *cursor_info) {
         cursor_info->y_pos += 1;
     } else {
         cursor_info->y_pos = VGA_HEIGHT - 1;
+        scroll();
     }
 }
 
