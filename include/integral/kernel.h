@@ -15,6 +15,8 @@
 #error "This operating system kernel requires an i86 host machine."
 #endif
 
+#define INTEGRAL_VERSION "0.01-280416"
+
 void panic(const char *message);
 
 #endif /* KERNEL_H_ */

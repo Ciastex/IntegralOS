@@ -23,7 +23,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     }
     init_terminal();
 
-    printf("\\[2Integral OS\\X\n");
+    printf("\\[AIntegral OS \\Xv%s\n", INTEGRAL_VERSION);
     printf("Preparing the operating system environment...\n\n");
 
     init_gdt();
@@ -41,7 +41,6 @@ void panic(const char *message) {
     asm volatile("movl %%ebx, %0" : "=r"(ebx));
     asm volatile("movl %%ecx, %0" : "=r"(ecx));
     asm volatile("movl %%edx, %0" : "=r"(edx));
-
 
     init_terminal();
 
