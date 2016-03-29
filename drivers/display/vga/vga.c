@@ -3,6 +3,7 @@
  * Description: Provides VGA driver implementation.
  *
  * * * */
+#include <stdlib.h>
 #include <string.h>
 
 #include <display/vga.h>
@@ -112,6 +113,20 @@ void scroll(void)
    {
        terminal_buffer[i] = make_vga_entry(' ', screen_attribute);
    }
+}
+
+void disable_cursor(void) {
+    outb(VGA_BASE_PORT, VGA_CMD_CURSOR_START);
+    uint8_t cursor_state = inb(VGA_DATA_PORT);
+    SET_BIT(cursor_state, 5);
+    outb(VGA_DATA_PORT, cursor_state);
+}
+
+void enable_cursor(void) {
+    outb(VGA_BASE_PORT, VGA_CMD_CURSOR_START);
+    uint8_t cursor_state = inb(VGA_DATA_PORT);
+    CLEAR_BIT(cursor_state, 5);
+    outb(VGA_DATA_PORT, cursor_state);
 }
 
 static vga_attrib_t make_vga_attribute(vga_color_t foreground, vga_color_t background) {

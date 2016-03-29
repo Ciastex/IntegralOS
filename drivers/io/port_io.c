@@ -7,6 +7,10 @@
 #include <stdint.h>
 #include <io/port_io.h>
 
+void io_wait(void) {
+    asm volatile("outb %%al, $0x80" : : "a"(0));
+}
+
 void outb(uint16_t port, uint8_t value) {
     asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
 }

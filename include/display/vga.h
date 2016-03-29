@@ -13,8 +13,10 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
-#define VGA_CMD_CURSOR_LOW 0x0F
+#define VGA_CMD_CURSOR_START 0x0A
+#define VGA_CMD_CURSOR_END 0x0B
 #define VGA_CMD_CURSOR_HIGH 0x0E
+#define VGA_CMD_CURSOR_LOW 0x0F
 
 #define VGA_BASE_PORT 0x3D4
 #define VGA_DATA_PORT 0x3D5
@@ -61,6 +63,8 @@ void set_vga_foreground(vga_color_t foreground);
 void set_vga_background(vga_color_t background);
 void reset_vga_colors(void);
 void scroll(void);
+void disable_cursor(void);
+void enable_cursor(void);
 void set_cursor_position(vga_coord_t x, vga_coord_t y);
 vga_color_info_t get_current_vga_colors(void);
 vga_cursor_info_t get_cursor_position(void);

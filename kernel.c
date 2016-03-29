@@ -12,13 +12,16 @@
 #include <integral/kernel.h>
 #include <integral/panic.h>
 #include <integral/tty.h>
+#include <display/vga.h>
 #include <io/port_io.h>
+#include <io/8259a/pic.h>
 
 #include <hal/cpu.h>
 
 static void print_welcome_screen(void);
 static void init_gdt(void);
 static void init_idt(void);
+static void init_pic(void);
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     init_terminal();
@@ -30,15 +33,14 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
 
         init_gdt();
         init_idt();
+        init_pic();
 
-        asm volatile ("int $0x00");
-
-        return;
+        for(;;);
     }
 }
 
 static void print_welcome_screen(void) {
-    printf("\\[AIntegral OS kernel\\Xv%s\n%s\n", INTEGRAL_VERSION, INTEGRAL_COPYRIGHT);
+    printf("\\[AIntegral OS kernel\\X v%s\n%s\n", INTEGRAL_VERSION, INTEGRAL_COPYRIGHT);
     for(size_t i = 0; i < 40; i++) {
         printf("-");
     }
@@ -56,4 +58,10 @@ static void init_idt(void) {
     printf("Setting up the Interrupt Descriptor Table... ");
     idt_descriptor_t descriptor = init_interrupt_descriptor_table();
     printf("\\[2Loaded @\\X 0x%08X\n", descriptor.address);
+}
+
+static void init_pic(void) {
+    printf("Initializing 8259A PIC... ");
+    pic_remap(32, 40);
+    printf("\\[2OK\\X\nIRQ_VEC_START_\\[AMASTER\\X = 32\nIRQ_VEC_START_\\[ASLAVE\\X = 40\n");
 }

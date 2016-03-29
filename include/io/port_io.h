@@ -9,6 +9,8 @@
 
 #include <stdint.h>
 
+void io_wait(void);
+
 void outb(uint16_t port, uint8_t value);
 void outw(uint16_t port, uint16_t value);
 void outl(uint16_t port, uint32_t value);

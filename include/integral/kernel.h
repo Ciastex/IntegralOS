@@ -15,7 +15,7 @@
 #error "This operating system kernel requires an i86 host machine."
 #endif
 
-#define INTEGRAL_VERSION "0.01-280416"
-#define INTEGRAL_COPYRIGHT "Copyright (C) 2016 \\[BCiastex\\X @ OverCR Systems"
+#define INTEGRAL_VERSION "0.01-280316"
+#define INTEGRAL_COPYRIGHT "Copyright (C) 2016 \\[BCiastex\\X @ \\[8OverCR Systems\\X"
 
 #endif /* KERNEL_H_ */
