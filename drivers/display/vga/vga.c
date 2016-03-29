@@ -101,7 +101,6 @@ vga_cursor_info_t get_cursor_position(void) {
     return cursor_info;
 }
 
-
 void scroll(void)
 {
    for (size_t i = 0; i < (VGA_HEIGHT - 1) * VGA_WIDTH; i++)
