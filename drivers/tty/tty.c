@@ -76,7 +76,7 @@ void put_char(char character) {
     } else {
         put_char_at_cursor(character);
 
-        if(cursor_info.x_pos < VGA_WIDTH) {
+        if(cursor_info.x_pos < VGA_WIDTH - 1) {
             cursor_info.x_pos += 1;
         } else {
             put_newline(&cursor_info);
@@ -88,7 +88,7 @@ void put_char(char character) {
 static void put_newline(vga_cursor_info_t *cursor_info) {
     cursor_info->x_pos = 0;
 
-    if(cursor_info->y_pos < VGA_HEIGHT) {
+    if(cursor_info->y_pos < VGA_HEIGHT - 1) {
         cursor_info->y_pos += 1;
     } else {
         cursor_info->y_pos = VGA_HEIGHT - 1;
