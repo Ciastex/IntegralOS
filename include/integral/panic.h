@@ -9,6 +9,6 @@
 
 #include <hal/isr.h>
 
-void kpanic(const char *message, isr_info_t *context);
+void kpanic(const char *message/*, isr_info_t *context*/);
 
 #endif /* PANIC_H_ */

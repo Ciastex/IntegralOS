@@ -91,7 +91,7 @@ void interrupt_handler(isr_info_t *context) {
                 msg = "Reserved exception";
                 break;
         }
-        kpanic(msg, context);
+        kpanic(msg);
     }
 }
 
