@@ -11,7 +11,6 @@
 
 #define EXTERN_IRQ_HANDLER_NAME(x) irq_handler_ ## x
 #define EXTERN_IRQ_HANDLER(x) extern void EXTERN_IRQ_HANDLER_NAME(x)(void)
-
 #define IRQ_INT_HANDLER(x) idt_entries[x] = create_kernelspace_interrupt_entry((uint32_t)&EXTERN_IRQ_HANDLER_NAME(x))
 
 #define IRQ_NUMBER_PIT  0x00
@@ -38,7 +37,7 @@ typedef struct irq_info {
     uint32_t eip, cs, eflags, esp_user, ss;
 } irq_info_t;
 
-typedef void (* func_ptr)(irq_info_t *irq_info);
+typedef void (* irq_func_ptr)(irq_info_t *irq_info);
 
 EXTERN_IRQ_HANDLER(32);
 EXTERN_IRQ_HANDLER(33);

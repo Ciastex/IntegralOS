@@ -10,6 +10,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define NULL_SELECTOR              0x00
+#define KERNELMODE_CODE_SELECTOR   0x08
+#define KERNELMODE_DATA_SELECTOR   0x10
+#define USERMODE_CODE_SELECTOR     0x18
+#define USERMODE_DATA_SELECTOR     0x20
+
 #define ACCESS_DESC_ACCESSED         0x0001
 #define ACCESS_DESC_READWRITE        0x0002 // 1 - allowed: read for code; write for data; else restrict
 #define ACCESS_DESC_DIRECTION        0x0004 // 0 - segment grows up; 1 - segment grows down
@@ -41,5 +47,6 @@ gdt_entry_t create_gdt_entry(uint32_t base_addr, uint32_t limit, uint8_t access,
 gdt_entry_t create_gdt_null_entry(void);
 gdt_entry_t create_kernelspace_entry(uint32_t base_addr, uint32_t limit, bool is_code);
 gdt_entry_t create_userspace_entry(uint32_t base_addr, uint32_t limit, bool is_code);
+gdt_descriptor_t init_global_descriptor_table(void);
 
 #endif /* GDT_H_ */

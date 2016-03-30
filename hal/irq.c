@@ -13,7 +13,7 @@
 #include <io/8259a/pic.h>
 
 static uint32_t spurious_irq_count = 0;
-static func_ptr handlers[256] = { 0 };
+static irq_func_ptr handlers[256] = { 0 };
 
 void irq_handler(irq_info_t *irq_info) {
     if(irq_info->irq_number == IRQ_NUMBER_LPT1) {               // Spurious IRQ for MASTER
@@ -46,7 +46,7 @@ void set_irq_handler(uint32_t number, uint32_t func_pointer) {
     if(number > 256) {
         kpanic("Tried to set IRQ handler with number greater than 256");
     }
-    handlers[number] = (func_ptr)func_pointer;
+    handlers[number] = (irq_func_ptr)func_pointer;
 }
 
 uint32_t get_spurious_irq_count(void) {

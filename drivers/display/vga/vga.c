@@ -3,6 +3,7 @@
  * Description: Provides VGA driver implementation.
  *
  * * * */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 

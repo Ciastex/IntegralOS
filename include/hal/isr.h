@@ -11,8 +11,9 @@
 
 #define EXTERN_ISR_HANDLER_NAME(x) isr_handler_ ## x
 #define EXTERN_ISR_HANDLER(x) extern void EXTERN_ISR_HANDLER_NAME(x)(void)
-
 #define CPU_HW_INT_HANDLER(x) idt_entries[x] = create_kernelspace_interrupt_entry((uint32_t)&EXTERN_ISR_HANDLER_NAME(x))
+
+#define MAX_INTERRUPT_HANDLERS 256
 
 EXTERN_ISR_HANDLER(0);
 EXTERN_ISR_HANDLER(1);
@@ -54,6 +55,9 @@ typedef struct isr_info {
     uint32_t eip, cs, eflags, esp_user, ss;
 } isr_info_t;
 
+typedef void (* isr_func_ptr)(isr_info_t *context);
+
 void interrupt_handler(isr_info_t *context);
+void set_interrupt_handler(uint32_t interrupt_number, uint32_t address);
 
 #endif /* ISR_H_ */

@@ -23,7 +23,6 @@ static void print_welcome_screen(void);
 static void init_gdt(void);
 static void init_idt(void);
 static void init_pic(void);
-static void pit_callback(irq_info_t *irq_info);
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     init_terminal();
@@ -35,17 +34,10 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
 
         init_gdt();
         init_idt();
-
-        set_irq_handler(0, (uint32_t)&pit_callback);
-
         init_pic();
 
         for(;;);
     }
-}
-
-static void pit_callback(irq_info_t *irq_info) {
-    printf("kurwa chuj ");
 }
 
 static void print_welcome_screen(void) {

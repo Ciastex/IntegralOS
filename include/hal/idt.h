@@ -44,5 +44,6 @@ typedef struct idt_entry {
 
 idt_entry_t create_idt_entry(uint32_t base, uint16_t selector, uint8_t attributes);
 idt_entry_t create_kernelspace_interrupt_entry(uint32_t base);
+idt_descriptor_t init_interrupt_descriptor_table(void);
 
 #endif /* IDT_H_ */
