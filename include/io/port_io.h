@@ -9,6 +9,9 @@
 
 #include <stdint.h>
 
+#define SYSTEM_CONTROL_PORT_A 0x92
+#define SYSTEM_CONTROL_PORT_B 0x61
+
 void io_wait(void);
 
 void outb(uint16_t port, uint8_t value);

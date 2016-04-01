@@ -44,7 +44,7 @@ void irq_handler(irq_info_t *irq_info) {
 
 void set_irq_handler(uint32_t number, uint32_t func_pointer) {
     if(number > 256) {
-        kpanic("Tried to set IRQ handler with number greater than 256");
+        kpanic("Tried to define IRQ ISR index greater than 256.", number, func_pointer, 0);
     }
     handlers[number] = (irq_func_ptr)func_pointer;
 }
