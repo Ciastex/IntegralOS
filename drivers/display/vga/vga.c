@@ -73,8 +73,8 @@ vga_color_info_t get_current_vga_colors(void) {
     vga_color_info_t color_info;
     memset(&color_info, 0, sizeof(vga_color_info_t));
 
-    color_info.foreground = (screen_attribute >> 4) & 0x0F;
-    color_info.background = screen_attribute & 0x0F;
+    color_info.foreground = screen_attribute & 0x0F;
+    color_info.background = screen_attribute & 0xF0;
 
     return color_info;
 }
@@ -102,14 +102,14 @@ vga_cursor_info_t get_cursor_position(void) {
     return cursor_info;
 }
 
-void scroll(void)
+void scroll(size_t window_height)
 {
-   for (size_t i = 0; i < (VGA_HEIGHT - 1) * VGA_WIDTH; i++)
+   for (size_t i = 0; i < window_height * VGA_WIDTH; i++)
    {
        terminal_buffer[i] = terminal_buffer[i + VGA_WIDTH];
    }
 
-   for (size_t i = (VGA_HEIGHT - 1) * VGA_WIDTH; i < VGA_HEIGHT * VGA_WIDTH; i++)
+   for (size_t i = window_height * VGA_WIDTH; i < (window_height + 1) * VGA_WIDTH; i++)
    {
        terminal_buffer[i] = make_vga_entry(' ', screen_attribute);
    }

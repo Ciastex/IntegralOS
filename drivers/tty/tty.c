@@ -12,8 +12,24 @@
 static void put_newline(vga_cursor_info_t *cursor_info);
 static vga_color_t determine_output_color(char character);
 
+static vga_color_t statusbar_background = COLOR_GREEN;
+static vga_color_t statusbar_foreground = COLOR_LIGHT_BROWN;
+
 void init_terminal(void) {
     initialize_screen_defaults();
+
+    vga_color_info_t original_colors = get_current_vga_colors();
+    set_vga_foreground(statusbar_foreground);
+    set_vga_background(statusbar_background);
+
+    for(vga_coord_t x = 0; x <= VGA_WIDTH; x++) {
+    	put_char_at_cursor(' ');
+    	set_cursor_position(x, VGA_HEIGHT - 1);
+    }
+    set_vga_foreground(original_colors.foreground);
+    set_vga_background(original_colors.background);
+
+    set_cursor_position(0, 0);
 }
 
 void write_line(const char *string) {
@@ -85,14 +101,36 @@ void put_char(char character) {
     set_cursor_position(cursor_info.x_pos, cursor_info.y_pos);
 }
 
+void set_statusbar_text(const char *text) {
+	// disable_cursor();
+	// vga_cursor_info_t original_cursor_info = get_cursor_position();
+    vga_color_info_t original_colors = get_current_vga_colors();
+    set_vga_foreground(statusbar_foreground);
+    set_vga_background(statusbar_background);
+
+    size_t length = strlen(text);
+    for(size_t x = 0; x < length; x++) {
+    	put_char_at(text[x], x, VGA_HEIGHT - 1);
+
+    	if(x > VGA_WIDTH) {
+    		break;
+    	}
+    }
+    set_vga_foreground(original_colors.foreground);
+    set_vga_background(original_colors.background);
+
+    // set_cursor_position(original_cursor_info.x_pos, original_cursor_info.y_pos);
+    // enable_cursor();
+}
+
 static void put_newline(vga_cursor_info_t *cursor_info) {
     cursor_info->x_pos = 0;
 
-    if(cursor_info->y_pos < VGA_HEIGHT - 1) {
+    if(cursor_info->y_pos < VGA_HEIGHT - 2) {
         cursor_info->y_pos += 1;
     } else {
-        cursor_info->y_pos = VGA_HEIGHT - 1;
-        scroll();
+        cursor_info->y_pos = VGA_HEIGHT - 2;
+        scroll(VGA_HEIGHT - 2);
     }
 }
 

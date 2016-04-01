@@ -29,6 +29,16 @@ static void init_gdt(void);
 static void init_idt(void);
 static void init_pic(void);
 
+static uint32_t test = 0;
+void clbk(irq_info_t *irq_info) {
+	char *buf = { 0 };
+	sprintf(buf, "Integral OS | IRQ timer ticks: %d", test);
+	set_statusbar_text(buf);
+	test++;
+
+	printf(".");
+}
+
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     init_terminal();
 
@@ -41,8 +51,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         init_idt();
         init_pic();
 
-        asm volatile("int $1");
-
+        set_irq_handler(0, (uint32_t)&clbk);
         for(;;);
     }
 }

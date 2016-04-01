@@ -62,7 +62,7 @@ void set_vga_colors(vga_color_t foreground, vga_color_t background);
 void set_vga_foreground(vga_color_t foreground);
 void set_vga_background(vga_color_t background);
 void reset_vga_colors(void);
-void scroll(void);
+void scroll(size_t window_height);
 void disable_cursor(void);
 void enable_cursor(void);
 void set_cursor_position(vga_coord_t x, vga_coord_t y);
