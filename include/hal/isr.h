@@ -13,7 +13,7 @@
 #define EXTERN_ISR_HANDLER(x) extern void EXTERN_ISR_HANDLER_NAME(x)(void)
 #define CPU_HW_INT_HANDLER(x) idt_entries[x] = idt_create_kernelspace_interrupt_entry((uint32_t)&EXTERN_ISR_HANDLER_NAME(x))
 
-#define MAX_INTERRUPT_HANDLERS 256
+#define ISR_MAX_HANDLERS 256
 
 EXTERN_ISR_HANDLER(0);
 EXTERN_ISR_HANDLER(1);

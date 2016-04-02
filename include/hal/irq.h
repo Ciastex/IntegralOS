@@ -13,6 +13,8 @@
 #define EXTERN_IRQ_HANDLER(x) extern void EXTERN_IRQ_HANDLER_NAME(x)(void)
 #define IRQ_INT_HANDLER(x) idt_entries[x] = idt_create_kernelspace_interrupt_entry((uint32_t)&EXTERN_IRQ_HANDLER_NAME(x))
 
+#define IRQ_MAX_HANDLERS 256
+
 #define IRQ_NUMBER_PIT  0x00
 #define IRQ_NUMBER_KBD  0x01
 #define IRQ_NUMBER_SLV  0x02 // PIC cascade for slave
@@ -29,6 +31,8 @@
 #define IRQ_NUMBER_FPU  0x0D
 #define IRQ_NUMBER_HDC  0x0E
 #define IRQ_NUMBER_RSD5 0x0F
+
+
 
 typedef struct irq_info {
     uint32_t gs, fs, es, ds;
@@ -57,5 +61,6 @@ EXTERN_IRQ_HANDLER(46);
 
 void irq_handler(irq_info_t *irq);
 void irq_set_handler(uint32_t number, uintptr_t func_pointer);
+uint32_t irq_get_spurious_count(void);
 
 #endif /* IRQ_H_ */
