@@ -23,8 +23,8 @@ void tty_init_terminal(void) {
     vga_set_background(statusbar_background);
 
     for(vga_coord_t x = 0; x <= VGA_WIDTH; x++) {
-    	vga_put_char_at_cursor(' ');
-    	vga_set_cursor_position(x, VGA_HEIGHT - 1);
+        vga_put_char_at_cursor(' ');
+        vga_set_cursor_position(x, VGA_HEIGHT - 1);
     }
     vga_set_foreground(original_colors.foreground);
     vga_set_background(original_colors.background);
@@ -108,11 +108,11 @@ void tty_set_statusbar_text(const char *text) {
 
     size_t length = strlen(text);
     for(size_t x = 0; x < length; x++) {
-    	vga_put_char_at(text[x], x, VGA_HEIGHT - 1);
+        vga_put_char_at(text[x], x, VGA_HEIGHT - 1);
 
-    	if(x > VGA_WIDTH) {
-    		break;
-    	}
+        if(x > VGA_WIDTH) {
+            break;
+        }
     }
     vga_set_foreground(original_colors.foreground);
     vga_set_background(original_colors.background);
