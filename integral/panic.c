@@ -9,30 +9,30 @@
 #include <display/vga.h>
 
 void kpanic(const char *message, uint32_t ex_data_0, uint32_t ex_data_1, uint32_t ex_data_2) {
-	uint32_t eax, ebx, ecx, edx;
-	uint32_t esi, edi;
-	uint32_t cr0, cr2, cr3, cr4;
-	uint16_t cs, ds, es, fs, gs, ss;
+    uint32_t eax, ebx, ecx, edx;
+    uint32_t esi, edi;
+    uint32_t cr0, cr2, cr3, cr4;
+    uint16_t cs, ds, es, fs, gs, ss;
 
-	asm volatile("movl %%eax, %0" : "=r"(eax));
-	asm volatile("movl %%ebx, %0" : "=r"(ebx));
-	asm volatile("movl %%ecx, %0" : "=r"(ecx));
-	asm volatile("movl %%edx, %0" : "=r"(edx));
+    asm volatile("movl %%eax, %0" : "=r"(eax));
+    asm volatile("movl %%ebx, %0" : "=r"(ebx));
+    asm volatile("movl %%ecx, %0" : "=r"(ecx));
+    asm volatile("movl %%edx, %0" : "=r"(edx));
 
-	asm volatile("movl %%esi, %0" : "=r"(esi));
-	asm volatile("movl %%edi, %0" : "=r"(edi));
+    asm volatile("movl %%esi, %0" : "=r"(esi));
+    asm volatile("movl %%edi, %0" : "=r"(edi));
 
-	asm volatile("movl %%cr0, %0" : "=r"(cr0));
-	asm volatile("movl %%cr2, %0" : "=r"(cr2));
-	asm volatile("movl %%cr3, %0" : "=r"(cr3));
-	asm volatile("movl %%cr4, %0" : "=r"(cr4));
+    asm volatile("movl %%cr0, %0" : "=r"(cr0));
+    asm volatile("movl %%cr2, %0" : "=r"(cr2));
+    asm volatile("movl %%cr3, %0" : "=r"(cr3));
+    asm volatile("movl %%cr4, %0" : "=r"(cr4));
 
-	asm volatile("movw %%cs, %0" : "=r"(cs));
-	asm volatile("movw %%ds, %0" : "=r"(ds));
-	asm volatile("movw %%es, %0" : "=r"(es));
-	asm volatile("movw %%fs, %0" : "=r"(fs));
-	asm volatile("movw %%gs, %0" : "=r"(gs));
-	asm volatile("movw %%ss, %0" : "=r"(ss));
+    asm volatile("movw %%cs, %0" : "=r"(cs));
+    asm volatile("movw %%ds, %0" : "=r"(ds));
+    asm volatile("movw %%es, %0" : "=r"(es));
+    asm volatile("movw %%fs, %0" : "=r"(fs));
+    asm volatile("movw %%gs, %0" : "=r"(gs));
+    asm volatile("movw %%ss, %0" : "=r"(ss));
 
     printf("\n\n[\\[4INTEGRAL OS KERNEL PANIC\\X]: %s\n", message);
 

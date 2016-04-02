@@ -4,11 +4,11 @@
 #
 # # # # #
 
-.set ALIGN,		1 << 0
-.set MEMINFO,	1 << 1
-.set FLAGS, 	ALIGN | MEMINFO
-.set MAGIC,		0x1BADB002
-.set CHECKSUM,	-(MAGIC + FLAGS)
+.set ALIGN,     1 << 0
+.set MEMINFO,   1 << 1
+.set FLAGS,     ALIGN | MEMINFO
+.set MAGIC,     0x1BADB002
+.set CHECKSUM,  -(MAGIC + FLAGS)
 
 .section .multiboot_header
 .align 4
@@ -19,24 +19,24 @@
 # Boot-time stack setup.
 .section .boot_stack, "aw", @nobits
 stack_bottom:
-	.skip 16384
+    .skip 16384
 stack_top:
-	# There's nothing to see here, move along.
+    # There's nothing to see here, move along.
 
 .section .text
 .global _start
 .type _start, @function
 _start:
-	movl $stack_top, %esp
+    movl $stack_top, %esp
 
-	pushl %eax
-	pushl %ebx
-	call kernel_init
+    pushl %eax
+    pushl %ebx
+    call kernel_init
 
-	cli
-	hlt
+    cli
+    hlt
 
 .failsafe_loop:
-	jmp .failsafe_loop
+    jmp .failsafe_loop
 
 .size _start, . - _start

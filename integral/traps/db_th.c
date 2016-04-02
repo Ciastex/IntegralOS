@@ -8,5 +8,5 @@
 #include <hal/isr.h>
 
 void debug_trap_handler(isr_info_t *isr_info) {
-	kpanic("Debug trap handler called.", isr_info->eip, 0, 0);
+    kpanic("Debug trap handler called.", isr_info->eip, 0, 0);
 }

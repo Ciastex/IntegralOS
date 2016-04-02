@@ -8,6 +8,6 @@
 #include <hal/isr.h>
 
 void breakpoint_trap_handler(isr_info_t *isr_info) {
-	kpanic("Breakpoint trap handler called.", isr_info->eip, 0, 0);
+    kpanic("Breakpoint trap handler called.", isr_info->eip, 0, 0);
 }
 

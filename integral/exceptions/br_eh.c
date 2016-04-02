@@ -8,5 +8,5 @@
 #include <hal/isr.h>
 
 void bound_range_exceeded_exception_handler(isr_info_t *isr_info) {
-	kpanic("Bound range exceeded exception handler called.", isr_info->eip, 0, 0);
+    kpanic("Bound range exceeded exception handler called.", isr_info->eip, 0, 0);
 }
