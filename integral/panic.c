@@ -47,7 +47,7 @@ void kpanic(const char *message, uint32_t ex_data_0, uint32_t ex_data_1, uint32_
     printf("    [\\[70\\X]: 0x%08X %032b %d\n", ex_data_0, ex_data_0, ex_data_0);
     printf("    [\\[71\\X]: 0x%08X %032b %d\n", ex_data_1, ex_data_1, ex_data_1);
     printf("    [\\[72\\X]: 0x%08X %032b %d\n", ex_data_2, ex_data_2, ex_data_2);
-    disable_cursor();
+    vga_disable_cursor();
 
     asm volatile("cli");
     asm volatile("hlt");

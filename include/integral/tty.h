@@ -9,10 +9,10 @@
 
 #include <display/vga.h>
 
-void init_terminal(void);
-void write_line(const char *string);
-void write(const char *string);
-void put_char(char character);
-void set_statusbar_text(const char *text);
+void tty_init_terminal(void);
+void tty_write_line(const char *string);
+void tty_write(const char *string);
+void tty_put_char(char character);
+void tty_set_statusbar_text(const char *text);
 
 #endif /* TTY_H_ */

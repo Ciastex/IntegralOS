@@ -54,20 +54,20 @@ typedef struct vga_cursor_info {
     vga_coord_t y_pos;
 } vga_cursor_info_t;
 
-void initialize_screen_defaults(void);
-void clear_screen(void);
-void put_char_at(char character, vga_coord_t x, vga_coord_t y);
-void put_char_at_cursor(char character);
-void set_vga_colors(vga_color_t foreground, vga_color_t background);
-void set_vga_foreground(vga_color_t foreground);
-void set_vga_background(vga_color_t background);
-void reset_vga_colors(void);
-void scroll(size_t window_height);
-void disable_cursor(void);
-void enable_cursor(void);
-void set_cursor_position(vga_coord_t x, vga_coord_t y);
-vga_color_info_t get_current_vga_colors(void);
-vga_cursor_info_t get_cursor_position(void);
+void vga_initialize_screen_defaults(void);
+void vga_clear_screen(void);
+void vga_put_char_at(char character, vga_coord_t x, vga_coord_t y);
+void vga_put_char_at_cursor(char character);
+void vga_set_colors(vga_color_t foreground, vga_color_t background);
+void vga_set_foreground(vga_color_t foreground);
+void vga_set_background(vga_color_t background);
+void vga_reset_colors(void);
+vga_color_info_t vga_get_current_colors(void);
+void vga_scroll(size_t window_height);
+void vga_disable_cursor(void);
+void vga_enable_cursor(void);
+void vga_set_cursor_position(vga_coord_t x, vga_coord_t y);
+vga_cursor_info_t vga_get_cursor_position(void);
 
 
 #endif /* VGA_H_ */

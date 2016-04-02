@@ -20,7 +20,7 @@ void interrupt_handler(isr_info_t *context) {
 	}
 }
 
-void set_interrupt_handler(uint32_t number, uint32_t address) {
+void isr_set_handler(uint32_t number, uintptr_t address) {
 	if(number > MAX_INTERRUPT_HANDLERS) {
 		kpanic("Tried to define CPU ISR index greater than 256.", number, address, 0);
 	}

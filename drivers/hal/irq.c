@@ -42,13 +42,13 @@ void irq_handler(irq_info_t *irq_info) {
     pic_send_eoi(irq_info->irq_number);
 }
 
-void set_irq_handler(uint32_t number, uint32_t func_pointer) {
+void irq_set_handler(uint32_t number, uintptr_t func_pointer) {
     if(number > 256) {
         kpanic("Tried to define IRQ ISR index greater than 256.", number, func_pointer, 0);
     }
     handlers[number] = (irq_func_ptr)func_pointer;
 }
 
-uint32_t get_spurious_irq_count(void) {
+uint32_t irq_get_spurious_count(void) {
     return spurious_irq_count;
 }

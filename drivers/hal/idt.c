@@ -19,7 +19,7 @@ static void populate_irq_entries(void);
 static idt_descriptor_t idt_descriptor;
 static idt_entry_t idt_entries[256];
 
-idt_entry_t create_idt_entry(uint32_t base, uint16_t selector, uint8_t attributes) {
+idt_entry_t idt_create_entry(uint32_t base, uint16_t selector, uint8_t attributes) {
     idt_entry_t entry;
     entry.base_low = base & 0xFFFF;
     entry.selector = selector;
@@ -30,14 +30,14 @@ idt_entry_t create_idt_entry(uint32_t base, uint16_t selector, uint8_t attribute
     return entry;
 }
 
-idt_entry_t create_kernelspace_interrupt_entry(uint32_t base) {
-    return create_idt_entry(
+idt_entry_t idt_create_kernelspace_interrupt_entry(uint32_t base) {
+    return idt_create_entry(
             base,
             KERNELMODE_CODE_SELECTOR,
             DESC_TYPE_32BIT_INT | DESC_FLAGS_PRESENT);
 }
 
-idt_descriptor_t init_interrupt_descriptor_table(void) {
+idt_descriptor_t idt_init_interrupt_descriptor_table(void) {
     memset(&idt_entries, 0, sizeof(idt_entry_t) * 256);
 
     populate_cpu_critical_exceptions();

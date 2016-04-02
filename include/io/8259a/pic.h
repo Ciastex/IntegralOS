@@ -21,7 +21,7 @@
 #define PIC8259_CMD_READ_ISR 0x0B
 
 #define PIC_SLAVE_AT_IRQ2 0x04
-#define PIC_CASCADE_IRQ2 0x02
+#define PIC_CASCADE_IRQ2  0x02
 
 #define PIC_MODE_8086       0x01
 #define PIC_MODE_AUTO       0x02

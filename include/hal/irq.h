@@ -11,7 +11,7 @@
 
 #define EXTERN_IRQ_HANDLER_NAME(x) irq_handler_ ## x
 #define EXTERN_IRQ_HANDLER(x) extern void EXTERN_IRQ_HANDLER_NAME(x)(void)
-#define IRQ_INT_HANDLER(x) idt_entries[x] = create_kernelspace_interrupt_entry((uint32_t)&EXTERN_IRQ_HANDLER_NAME(x))
+#define IRQ_INT_HANDLER(x) idt_entries[x] = idt_create_kernelspace_interrupt_entry((uint32_t)&EXTERN_IRQ_HANDLER_NAME(x))
 
 #define IRQ_NUMBER_PIT  0x00
 #define IRQ_NUMBER_KBD  0x01
@@ -56,6 +56,6 @@ EXTERN_IRQ_HANDLER(45);
 EXTERN_IRQ_HANDLER(46);
 
 void irq_handler(irq_info_t *irq);
-void set_irq_handler(uint32_t number, uint32_t func_pointer);
+void irq_set_handler(uint32_t number, uintptr_t func_pointer);
 
 #endif /* IRQ_H_ */

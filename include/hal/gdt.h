@@ -43,10 +43,10 @@ typedef struct gdt_entry {
     uint8_t base_high;
 } gdt_entry_t;
 
-gdt_entry_t create_gdt_entry(uint32_t base_addr, uint32_t limit, uint8_t access, uint8_t granularity);
-gdt_entry_t create_gdt_null_entry(void);
-gdt_entry_t create_kernelspace_entry(uint32_t base_addr, uint32_t limit, bool is_code);
-gdt_entry_t create_userspace_entry(uint32_t base_addr, uint32_t limit, bool is_code);
-gdt_descriptor_t init_global_descriptor_table(void);
+gdt_entry_t gdt_create_entry(uint32_t base_addr, uint32_t limit, uint8_t access, uint8_t granularity);
+gdt_entry_t gdt_create_null_entry(void);
+gdt_entry_t gdt_create_kernelspace_entry(uint32_t base_addr, uint32_t limit, bool is_code);
+gdt_entry_t gdt_create_userspace_entry(uint32_t base_addr, uint32_t limit, bool is_code);
+gdt_descriptor_t gdt_init_global_descriptor_table(void);
 
 #endif /* GDT_H_ */
