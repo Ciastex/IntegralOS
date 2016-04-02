@@ -13,24 +13,24 @@
 #include <io/8259a/pic.h>
 
 static uint32_t spurious_irq_count = 0;
-static irq_func_ptr handlers[256] = { 0 };
+static irq_func_ptr handlers[IRQ_MAX_HANDLERS] = { 0 };
 
 void irq_handler(irq_info_t *irq_info) {
-    if(irq_info->irq_number == IRQ_NUMBER_LPT1) {               // Spurious IRQ for MASTER
-        uint16_t combined_isr_state = pic_get_combined_isr();
-        uint8_t master_isr_state = combined_isr_state & 0xFF;
+    uint16_t combined_isr_state = pic_get_combined_isr();
 
-        if(!IS_BIT_SET(master_isr_state, IRQ_NUMBER_LPT1)) {
-            spurious_irq_count++;
-            return;
-        }
-    } else if(irq_info->irq_number == IRQ_NUMBER_RSD5) {        // Spurious IRQ for SLAVE
-        uint16_t combined_isr_state = pic_get_combined_isr();
+    if(irq_info->irq_number >= 8) {
         uint8_t slave_isr_state = (combined_isr_state >> 8) & 0xFF;
 
-        if(!IS_BIT_SET(slave_isr_state, IRQ_NUMBER_RSD5)) {
+        if(!IS_BIT_SET(slave_isr_state, irq_info->irq_number)) {
             spurious_irq_count++;
             pic_send_eoi_master();
+            return;
+        }
+    } else {
+        uint8_t master_isr_state = combined_isr_state & 0xFF;
+
+        if(!IS_BIT_SET(master_isr_state, irq_info->irq_number)) {
+            spurious_irq_count++;
             return;
         }
     }
@@ -43,8 +43,8 @@ void irq_handler(irq_info_t *irq_info) {
 }
 
 void irq_set_handler(uint32_t number, uintptr_t func_pointer) {
-    if(number > 256) {
-        kpanic("Tried to define IRQ ISR index greater than 256.", number, func_pointer, 0);
+    if(number > IRQ_MAX_HANDLERS - 1) {
+        kpanic("Tried to define IRQ ISR index greater than 255.", number, func_pointer, 0);
     }
     handlers[number] = (irq_func_ptr)func_pointer;
 }
