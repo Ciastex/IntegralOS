@@ -15,20 +15,31 @@
 #include <integral/kernel.h>
 #include <integral/panic.h>
 #include <integral/tty.h>
+#include <integral/timer.h>
 
 #include <hal/idt.h>
 #include <hal/gdt.h>
 #include <hal/irq.h>
 
 #include <display/vga.h>
+
 #include <io/port_io.h>
 #include <io/8259a/pic.h>
 #include <io/8259a/pit.h>
+#include <io/keyboard/keyboard.h>
 
 static void _ke_print_welcome_screen(void);
 static void _ke_init_gdt(void);
 static void _ke_init_idt(void);
 static void _ke_init_pic(void);
+static void _ke_init_pit(void);
+static void _ke_init_kbd(void);
+
+void clbk(void) {
+	char *text = { 0 };
+	sprintf(text, "ticks: %d | spurious: %d", pit_get_total_ticks(), irq_get_spurious_count());
+	tty_set_statusbar_text(text);
+}
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     tty_init_terminal();
@@ -41,6 +52,21 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         _ke_init_gdt();
         _ke_init_idt();
         _ke_init_pic();
+        _ke_init_pit();
+        _ke_init_kbd();
+
+        pit_set_callback((uintptr_t)&clbk);
+
+        while(1) {
+            kbd_set_leds(false, true, false);
+            sleep(10);
+            kbd_set_leds(true, false, false);
+            sleep(10);
+            kbd_set_leds(false, false, true);
+            sleep(10);
+            kbd_set_leds(true, false, false);
+            sleep(10);
+        }
 
         for(;;);
     }
@@ -93,4 +119,17 @@ static void _ke_init_pic(void) {
     printf("Initializing 8259A PIC... ");
     pic_remap(32, 40);
     printf("\\[2OK\\X\nIRQ_VEC_START_\\[AMASTER\\X = 32\nIRQ_VEC_START_\\[ASLAVE\\X = 40\n");
+}
+
+static void _ke_init_pit(void) {
+    printf("Initializing system timer... ");
+    pit_init();
+    pit_set_frequency(100);
+    printf("\\[2Initialized @\\X %dHz\n", pit_get_current_frequency());
+}
+
+static void _ke_init_kbd(void) {
+    printf("Initializing keyboard... ");
+    kbd_init();
+    printf("\\[2OK\\X\n");
 }
