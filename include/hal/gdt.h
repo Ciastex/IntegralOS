@@ -41,7 +41,7 @@ typedef struct gdt_entry {
     uint8_t access;
     uint8_t granularity;
     uint8_t base_high;
-} gdt_entry_t;
+} __attribute((packed)) gdt_entry_t;
 
 gdt_entry_t gdt_create_entry(uint32_t base_addr, uint32_t limit, uint8_t access, uint8_t granularity);
 gdt_entry_t gdt_create_null_entry(void);

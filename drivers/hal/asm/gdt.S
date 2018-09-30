@@ -7,7 +7,6 @@
 .global low_level_load_gdt
 
 low_level_load_gdt:
-	cli
 	movl 4(%esp), %eax
 	lgdt (%eax)
 	mov $0x10, %ax
@@ -19,5 +18,4 @@ low_level_load_gdt:
 
 	ljmp $0x08,$done
 done:
-	sti
 	ret

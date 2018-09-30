@@ -66,10 +66,10 @@ gdt_entry_t gdt_create_userspace_entry(uint32_t base_addr, uint32_t limit, bool 
 
 gdt_descriptor_t gdt_init_global_descriptor_table(void) {
     gdt_entries[0] = gdt_create_null_entry();
-    gdt_entries[1] = gdt_create_kernelspace_entry(0x00000000, 0xFFFFFFFF, true);
-    gdt_entries[2] = gdt_create_kernelspace_entry(0x00000000, 0xFFFFFFFF, false);
-    gdt_entries[3] = gdt_create_userspace_entry(0x00000000, 0xFFFFFFFF, true);
-    gdt_entries[4] = gdt_create_userspace_entry(0x00000000, 0xFFFFFFFF, false);
+    gdt_entries[1] = gdt_create_kernelspace_entry(0x00000000, 0xFFFFF, true);
+    gdt_entries[2] = gdt_create_kernelspace_entry(0x00000000, 0xFFFFF, false);
+    gdt_entries[3] = gdt_create_userspace_entry(0x00000000, 0xFFFFF, true);
+    gdt_entries[4] = gdt_create_userspace_entry(0x00000000, 0xFFFFF, false);
 
     gdt_descriptor.address = (uint32_t)&gdt_entries;
     gdt_descriptor.size = (sizeof(gdt_entry_t) * 5) - 1;

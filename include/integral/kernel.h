@@ -16,6 +16,6 @@
 #endif
 
 #define INTEGRAL_VERSION "0.01 built at " __TIME__ " on "__DATE__
-#define INTEGRAL_COPYRIGHT "Copyright (C) 2016 \\[BCiastex\\X @ \\[8OverCR Systems\\X"
+#define INTEGRAL_COPYRIGHT "Copyright (C) 2016 \\[BCiastex\\X"
 
 #endif /* KERNEL_H_ */

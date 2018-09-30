@@ -20,6 +20,7 @@
 #include <hal/idt.h>
 #include <hal/gdt.h>
 #include <hal/irq.h>
+#include <hal/bda.h>
 
 #include <display/vga.h>
 
@@ -42,6 +43,8 @@ void clbk(void) {
 }
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
+    asm volatile("cli");
+
     tty_init_terminal();
 
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -57,17 +60,17 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
 
         pit_set_callback((uintptr_t)&clbk);
 
-        while(1) {
-            kbd_set_leds(false, true, false);
-            sleep(10);
-            kbd_set_leds(true, false, false);
-            sleep(10);
-            kbd_set_leds(false, false, true);
-            sleep(10);
-            kbd_set_leds(true, false, false);
-            sleep(10);
-        }
-
+        bda_info_t bda_info = bda_get_info();
+        printf("BDA STRUCTURE DATA:\n");
+        printf("  SERIAL_PORT_1: %p\n", bda_info.com_port1_addr);
+        printf("  SERIAL_PORT_2: %p\n", bda_info.com_port2_addr);
+        printf("  SERIAL_PORT_3: %p\n", bda_info.com_port3_addr);
+        printf("  SERIAL_PORT_4: %p\n", bda_info.com_port4_addr);
+        printf("  PAR/LL_PORT_1: %p\n", bda_info.lpt_port1_addr);
+        printf("  PAR/LL_PORT_2: %p\n", bda_info.lpt_port2_addr);
+        printf("  PAR/LL_PORT_3: %p\n", bda_info.lpt_port3_addr);
+        printf("  EBDA BASE: %p\n", bda_info.ebda_addr << 4);
+        printf("  HARDWARE_FLAGS: %p (%016b)", bda_info.hw_flags, bda_info.hw_flags);
         for(;;);
     }
 }
