@@ -11,9 +11,13 @@
 #include <io/port_io.h>
 #include <hal/irq.h>
 #include <io/keyboard/keyboard.h>
+#include <io/keyboard/keymap.h>
 
 static void kbd_internal_callback(irq_info_t *irq_info);
 static uint8_t kbd_translate_scancode_to_keycode(uint8_t scancode);
+
+static keyboard_event_handler_t key_pressed = 0;
+static keyboard_event_handler_t key_released = 0;
 
 void kbd_init(void) {
     irq_set_handler(1, (uintptr_t)&kbd_internal_callback);
@@ -25,6 +29,14 @@ uint8_t kbd_read_status_register(void) {
 
 uint8_t kbd_read_encoder_buffer(void) {
     return inb(KBD_ENCODER_INPUT_BUFFER);
+}
+
+void kbd_set_pressed_callback(keyboard_event_handler_t handler) {
+    key_pressed = handler;
+}
+
+void kbd_set_released_callback(keyboard_event_handler_t handler) {
+    key_released = handler;
 }
 
 void kbd_send_control_command(uint8_t packet) {
@@ -73,11 +85,20 @@ void kbd_set_leds(bool caps_lock, bool num_lock, bool scroll_lock) {
 static void kbd_internal_callback(irq_info_t *irq_info) {
     if(inb(KBD_ENCODER_INPUT_BUFFER)) {
         uint8_t scancode = inb(KBD_ENCODER_INPUT_BUFFER);
+        uint8_t keycode = kbd_translate_scancode_to_keycode(scancode);
+        uint8_t character = keymap_regular[keycode];
+
+        key_info_t key_info;
+        key_info.scan_code = scancode;
+        key_info.key_code = keycode;
+        key_info.character = character;
+        key_info.pressed = false;
 
         if(scancode & KBD_KEYSTATE_PRESSED) {
-            printf("%08b\n", kbd_translate_scancode_to_keycode(scancode));
+            if(key_released) key_released(key_info);
         } else {
-            //printf("%08b\n", kbd_translate_scancode_to_keycode(scancode));
+            key_info.pressed = true;
+            if(key_pressed) key_pressed(key_info);
         }
     }
 }

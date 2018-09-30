@@ -42,6 +42,17 @@ void clbk(void) {
 	tty_set_statusbar_text(text);
 }
 
+void key_pressed(key_info_t key_info) {
+    if(key_info.key_code == VK_RETURN)
+        printf("\n");
+
+    printf("%c", key_info.character);
+}
+
+void key_released(key_info_t key_info) {
+
+}
+
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     asm volatile("cli");
 
@@ -70,7 +81,8 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         printf("  PAR/LL_PORT_2: %p\n", bda_info.lpt_port2_addr);
         printf("  PAR/LL_PORT_3: %p\n", bda_info.lpt_port3_addr);
         printf("  EBDA BASE: %p\n", bda_info.ebda_addr << 4);
-        printf("  HARDWARE_FLAGS: %p (%016b)", bda_info.hw_flags, bda_info.hw_flags);
+        printf("  HARDWARE_FLAGS: %p (%016b)\n", bda_info.hw_flags, bda_info.hw_flags);
+
         for(;;);
     }
 }
@@ -134,5 +146,7 @@ static void _ke_init_pit(void) {
 static void _ke_init_kbd(void) {
     printf("Initializing keyboard... ");
     kbd_init();
+    kbd_set_pressed_callback(key_pressed);
+    kbd_set_released_callback(key_released);
     printf("\\[2OK\\X\n");
 }
