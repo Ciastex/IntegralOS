@@ -13,14 +13,42 @@
 #include <io/keyboard/keyboard.h>
 #include <io/keyboard/keymap.h>
 
+//
+// 0 = shift_pressed
+// 1 = ctrl_pressed
+// 2 = meta_pressed
+// 3 = alt_pressed
+// 4 = capslock_active
+static uint8_t control_flags = 0;
+
 static void kbd_internal_callback(irq_info_t *irq_info);
 static uint8_t kbd_translate_scancode_to_keycode(uint8_t scancode);
 
-static keyboard_event_handler_t key_pressed = 0;
-static keyboard_event_handler_t key_released = 0;
+static keyboard_event_handler_t key_pressed = NULL;
+static keyboard_event_handler_t key_released = NULL;
 
 void kbd_init(void) {
     irq_set_handler(1, (uintptr_t)&kbd_internal_callback);
+}
+
+bool kbd_is_shift_pressed(void) {
+    return IS_BIT_SET(control_flags, 0);
+}
+
+bool kbd_is_ctrl_pressed(void) {
+    return IS_BIT_SET(control_flags, 1);
+}
+
+bool kbd_is_meta_pressed(void) {
+    return IS_BIT_SET(control_flags, 2);
+}
+
+bool kbd_is_alt_pressed(void) {
+    return IS_BIT_SET(control_flags, 3);
+}
+
+bool kbd_is_capslock_active(void) {
+    return IS_BIT_SET(control_flags, 4);
 }
 
 uint8_t kbd_read_status_register(void) {
@@ -86,7 +114,12 @@ static void kbd_internal_callback(irq_info_t *irq_info) {
     if(inb(KBD_ENCODER_INPUT_BUFFER)) {
         uint8_t scancode = inb(KBD_ENCODER_INPUT_BUFFER);
         uint8_t keycode = kbd_translate_scancode_to_keycode(scancode);
+
         uint8_t character = keymap_regular[keycode];
+
+        if(IS_BIT_SET(control_flags, 0)) {
+            character = keymap_shifted[keycode];
+        }
 
         key_info_t key_info;
         key_info.scan_code = scancode;
@@ -95,8 +128,45 @@ static void kbd_internal_callback(irq_info_t *irq_info) {
         key_info.pressed = false;
 
         if(scancode & KBD_KEYSTATE_PRESSED) {
+            switch(keycode) {
+                case VK_LSHIFT:
+                case VK_RSHIFT:
+                    CLEAR_BIT(control_flags, 0);
+                    break;
+                case VK_CONTROL:
+                    CLEAR_BIT(control_flags, 1);
+                    break;
+                case VK_META:
+                    CLEAR_BIT(control_flags, 2);
+                    break;
+                case VK_ALT:
+                    CLEAR_BIT(control_flags, 3);
+                    break;
+                default: break;
+            }
+
             if(key_released) key_released(key_info);
         } else {
+            switch(keycode) {
+                case VK_LSHIFT:
+                case VK_RSHIFT:
+                    SET_BIT(control_flags, 0);
+                    break;
+                case VK_CONTROL:
+                    SET_BIT(control_flags, 1);
+                    break;
+                case VK_META:
+                    SET_BIT(control_flags, 2);
+                    break;
+                case VK_ALT:
+                    SET_BIT(control_flags, 3);
+                    break;
+                case VK_CAPSLOCK:
+                    TOGGLE_BIT(control_flags, 4);
+                    break;
+                default: break;
+            }
+
             key_info.pressed = true;
             if(key_pressed) key_pressed(key_info);
         }

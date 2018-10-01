@@ -4,12 +4,21 @@
  *
  * * * */
 #include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <integral/tty.h>
 #include <display/vga.h>
+#include <io/keyboard/keyboard.h>
+
+static bool _reading_line = false;
+static char* _readline_buffer;
+static size_t _readline_count = 0;
+static size_t _readline_max = 0;
 
 static void _tty_put_newline(vga_cursor_info_t *cursor_info);
+static void _tty_keypress_handler(key_info_t key_info);
+
 static vga_color_t _tty_determine_output_color(char character);
 
 static vga_color_t statusbar_background = COLOR_GREEN;
@@ -30,11 +39,23 @@ void tty_init_terminal(void) {
     vga_set_background(original_colors.background);
 
     vga_set_cursor_position(0, 0);
+
+    kbd_set_pressed_callback(_tty_keypress_handler);
 }
 
 void tty_write_line(const char *string) {
     tty_write(string);
     tty_put_char('\n');
+}
+
+void tty_read_line(char* buffer, size_t count) {
+    memset(buffer, 0, count);
+    _readline_buffer = buffer;
+    _readline_max = count;
+    _readline_count = 0;
+    _reading_line = true;
+
+    while(_reading_line);
 }
 
 void tty_write(const char *string) {
@@ -89,6 +110,20 @@ void tty_put_char(char character) {
         _tty_put_newline(&cursor_info);
     } else if(character == '\r') {
         cursor_info.x_pos = 0;
+    } else if(character == '\b') {
+        if(cursor_info.x_pos - 1 < 0) {
+            if(cursor_info.y_pos > 0) {
+                cursor_info.x_pos = VGA_WIDTH - 1;
+                cursor_info.y_pos -= 1;
+            }
+            else { return; }
+        }
+        else {
+            cursor_info.x_pos -= 1;
+        }
+        vga_set_cursor_position(cursor_info.x_pos, cursor_info.y_pos);
+        vga_put_char_at_cursor(' ');
+        return;
     } else {
         vga_put_char_at_cursor(character);
 
@@ -165,6 +200,26 @@ static vga_color_t _tty_determine_output_color(char character) {
             return COLOR_WHITE;
         default:
             return COLOR_BLACK;
+    }
+}
+
+static void _tty_keypress_handler(key_info_t key_info) {
+    if(_reading_line) {
+        if(key_info.key_code == VK_RETURN) {
+            _readline_buffer[_readline_count] = 0;
+            _reading_line = false;
+        }
+        else if(key_info.key_code == VK_BACKSPACE && _readline_count > 0)
+        {
+            _readline_buffer[_readline_count--] = 0;
+            tty_put_char('\b');
+        }
+        else if(key_info.character >= 0x20 && key_info.character <= 0x7E) {
+            if(_readline_count >= _readline_max - 2) return;
+
+            _readline_buffer[_readline_count++] = key_info.character;
+            tty_put_char(key_info.character);
+        }
     }
 }
 

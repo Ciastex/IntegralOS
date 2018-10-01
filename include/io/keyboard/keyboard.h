@@ -90,6 +90,7 @@
 #define VK_SLASH     0x35
 #define VK_LBRACKET  0x1A
 #define VK_RBRACKET  0x1B
+#define VK_SPACE     0x39
 #define VK_RETURN    0x1C
 #define VK_CAPSLOCK  0x3A
 #define VK_LSHIFT    0x2A

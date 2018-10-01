@@ -19,7 +19,7 @@ uint8_t keymap_regular[255] = {
         [VK_J] = 'j', [VK_K] = 'k', [VK_L] = 'l', [VK_Z] = 'z', [VK_X] = 'x', [VK_C] = 'c',
         [VK_V] = 'v', [VK_B] = 'b', [VK_C] = 'c', [VK_N] = 'n', [VK_M] = 'm', [VK_LBRACKET] = '[',
         [VK_RBRACKET] = ']', [VK_SEMICOLON] = ';', [VK_QUOTE] = '\'', [VK_BACKSLASH] = '\\',
-        [VK_COMMA] = ',', [VK_PERIOD] = '.', [VK_SLASH] = '/'
+        [VK_COMMA] = ',', [VK_PERIOD] = '.', [VK_SLASH] = '/', [VK_SPACE] = ' '
 };
 
 uint8_t keymap_shifted[255] = {
@@ -31,7 +31,7 @@ uint8_t keymap_shifted[255] = {
         [VK_J] = 'J', [VK_K] = 'K', [VK_L] = 'L', [VK_Z] = 'Z', [VK_X] = 'X', [VK_C] = 'C',
         [VK_V] = 'V', [VK_B] = 'B', [VK_C] = 'C', [VK_N] = 'N', [VK_M] = 'M', [VK_LBRACKET] = '{',
         [VK_RBRACKET] = '}', [VK_SEMICOLON] = ':', [VK_QUOTE] = '"', [VK_BACKSLASH] = '|',
-        [VK_COMMA] = '<', [VK_PERIOD] = '>', [VK_SLASH] = '?'
+        [VK_COMMA] = '<', [VK_PERIOD] = '>', [VK_SLASH] = '?', [VK_SPACE] = ' '
 };
 
 #endif /* INCLUDE_IO_KEYBOARD_KEYMAP_H_ */
