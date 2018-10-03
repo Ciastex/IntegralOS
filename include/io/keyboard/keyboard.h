@@ -138,5 +138,10 @@ void kbd_send_encoder_command(uint8_t packet);
 void kbd_set_pressed_callback(keyboard_event_handler_t handler);
 void kbd_set_released_callback(keyboard_event_handler_t handler);
 void kbd_set_leds(bool caps_lock, bool num_lock, bool scroll_lock);
+bool kbd_is_ctrl_pressed(void);
+bool kbd_is_alt_pressed(void);
+bool kbd_is_meta_pressed(void);
+bool kbd_is_shift_pressed(void);
+bool kbd_is_capslock_active(void);
 
 #endif /* INCLUDE_IO_KEYBOARD_KEYBOARD_H_ */

@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#define VGA_BUFFER 0xB8000
+#define VGA_BASE_BUFFER 0xB8000
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
@@ -17,6 +17,8 @@
 #define VGA_CMD_CURSOR_END 0x0B
 #define VGA_CMD_CURSOR_HIGH 0x0E
 #define VGA_CMD_CURSOR_LOW 0x0F
+#define VGA_CMD_MEMORY_LOW 0x0D
+#define VGA_CMD_MEMORY_HIGH 0x0C
 
 #define VGA_BASE_PORT 0x3D4
 #define VGA_DATA_PORT 0x3D5
@@ -50,24 +52,20 @@ typedef struct vga_color_info {
 } vga_color_info_t;
 
 typedef struct vga_cursor_info {
-    vga_coord_t x_pos;
-    vga_coord_t y_pos;
+    vga_coord_t x;
+    vga_coord_t y;
 } vga_cursor_info_t;
 
-void vga_initialize_screen_defaults(void);
-void vga_clear_screen(void);
-void vga_put_char_at(char character, vga_coord_t x, vga_coord_t y);
-void vga_put_char_at_cursor(char character);
-void vga_set_colors(vga_color_t foreground, vga_color_t background);
-void vga_set_foreground(vga_color_t foreground);
-void vga_set_background(vga_color_t background);
-void vga_reset_colors(void);
-vga_color_info_t vga_get_current_colors(void);
-void vga_scroll(size_t window_height);
+void vga_clear_screen(uint16_t* buffer, vga_attrib_t attribute);
+void vga_put_char_at(uint16_t* buffer, vga_coord_t x, vga_coord_t y, vga_attrib_t attribute, char character);
+void vga_put_char_at_cursor(uint16_t* buffer, vga_cursor_info_t cursor, vga_attrib_t attribute, char character);
+void vga_scroll(uint16_t* buffer, size_t window_height, vga_attrib_t attribute);
 void vga_disable_cursor(void);
 void vga_enable_cursor(void);
-void vga_set_cursor_position(vga_coord_t x, vga_coord_t y);
-vga_cursor_info_t vga_get_cursor_position(void);
+void vga_set_cursor_position(uint16_t* buffer, vga_coord_t x, vga_coord_t y);
+void vga_set_cursor(uint16_t* buffer, vga_cursor_info_t* cursor);
+void vga_set_address_space(uint16_t* address);
+vga_attrib_t vga_make_attribute(vga_color_t foreground, vga_color_t background);
 
 
 #endif /* VGA_H_ */

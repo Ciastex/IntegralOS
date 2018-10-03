@@ -38,14 +38,25 @@ static void _ke_init_kbd(void);
 
 void clbk(void) {
 	char *text = { 0 };
-	sprintf(text, "ticks: %d | spurious: %d", pit_get_total_ticks(), irq_get_spurious_count());
-	tty_set_statusbar_text(text);
+
+	uint32_t total_ticks = pit_get_total_ticks();
+	sprintf(text, "ticks: %d | spurious: %d", total_ticks, irq_get_spurious_count());
+	tty_set_statusbar_text(0, text);
 }
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     asm volatile("cli");
 
-    tty_init_terminal();
+    tty_init_terminals();
+
+    for(size_t i = 0; i < TTY_MAX_TERMINALS; i++)
+    {
+        tty_terminal_info_t* terminal = tty_get_terminal(i);
+
+        char *text = { 0 };
+        sprintf(text, "terminal #%d @ 0x%p", i, terminal->buffer);
+        tty_set_statusbar_text(i, text);
+    }
 
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
@@ -59,31 +70,6 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         _ke_init_kbd();
 
         pit_set_callback((uintptr_t)&clbk);
-
-        bda_info_t bda_info = bda_get_info();
-        printf("BDA STRUCTURE DATA:\n");
-        printf("  SERIAL_PORT_1: %p\n", bda_info.com_port1_addr);
-        printf("  SERIAL_PORT_2: %p\n", bda_info.com_port2_addr);
-        printf("  SERIAL_PORT_3: %p\n", bda_info.com_port3_addr);
-        printf("  SERIAL_PORT_4: %p\n", bda_info.com_port4_addr);
-        printf("  PAR/LL_PORT_1: %p\n", bda_info.lpt_port1_addr);
-        printf("  PAR/LL_PORT_2: %p\n", bda_info.lpt_port2_addr);
-        printf("  PAR/LL_PORT_3: %p\n", bda_info.lpt_port3_addr);
-        printf("  EBDA BASE: %p\n", bda_info.ebda_addr << 4);
-        printf("  HARDWARE_FLAGS: %p (%016b)\n", bda_info.hw_flags, bda_info.hw_flags);
-
-        while(true)
-        {
-            printf("> ");
-            char buf[255] = { 0 };
-            tty_read_line(buf, 255);
-            printf("\n");
-
-            if(strcmp(buf, "panic") == 0)
-                kpanic("AHAHAHAHAHAHAHAHAHAHHAHA", 0, 0, 0);
-            else printf("? SYNTAX ERROR: %s\n", buf);
-        }
-
         for(;;);
     }
 }
