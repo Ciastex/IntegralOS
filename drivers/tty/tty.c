@@ -30,7 +30,7 @@ static vga_color_t _tty_determine_output_color(char character);
 static uint8_t current_terminal_index = 0;
 static tty_terminal_info_t terminals[TTY_MAX_TERMINALS] = { 0 };
 
-void tty_init_terminals(void) {
+void tty_init_terminals(post_init_callback_t callback) {
     for(uint8_t i = 0; i < TTY_MAX_TERMINALS; i++) {
         vga_cursor_info_t cursor_info;
         tty_cursor_t cursor;
@@ -68,7 +68,12 @@ void tty_init_terminals(void) {
         terminals[terminal.index] = terminal;
 
         vga_clear_screen(terminal.buffer, terminal.attributes.buffer);
+        tty_set_statusbar_text(terminal.index, " ");
+
+        if(callback)
+            callback(&terminal);
     }
+
     kbd_set_pressed_callback(_tty_keypress_handler);
 }
 

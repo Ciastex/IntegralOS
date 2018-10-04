@@ -35,28 +35,12 @@ static void _ke_init_idt(void);
 static void _ke_init_pic(void);
 static void _ke_init_pit(void);
 static void _ke_init_kbd(void);
-
-void clbk(void) {
-	char *text = { 0 };
-
-	uint32_t total_ticks = pit_get_total_ticks();
-	sprintf(text, "ticks: %d | spurious: %d", total_ticks, irq_get_spurious_count());
-	tty_set_statusbar_text(0, text);
-}
+static void _ke_pit_callback(void);
+static void _ke_tty_callback(tty_terminal_info_t* terminal);
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
-    asm volatile("cli");
-
-    tty_init_terminals();
-
-    for(size_t i = 0; i < TTY_MAX_TERMINALS; i++)
-    {
-        tty_terminal_info_t* terminal = tty_get_terminal(i);
-
-        char *text = { 0 };
-        sprintf(text, "terminal #%d @ 0x%p", i, terminal->buffer);
-        tty_set_statusbar_text(i, text);
-    }
+    tty_init_terminals(_ke_tty_callback);
+    tty_set_statusbar_text(0, "Hello, world.");
 
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
@@ -69,7 +53,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         _ke_init_pit();
         _ke_init_kbd();
 
-        pit_set_callback((uintptr_t)&clbk);
+        pit_set_callback((uintptr_t)&_ke_pit_callback);
         for(;;);
     }
 }
@@ -80,17 +64,16 @@ static void _ke_print_welcome_screen(void) {
         printf("-");
     }
     printf("\n");
-    printf("Preparing the operating system environment...\n\n");
+    printf("Preparing the operating system environment...\n");
+    printf("Use keys F1-F8 to switch between virtual terminals.\n\n");
 }
 
 static void _ke_init_gdt(void) {
-    printf("Setting up the Global Descriptor Table... ");
     gdt_descriptor_t descriptor = gdt_init_global_descriptor_table();
-    printf("\\[2Loaded @\\X 0x%08X\n", descriptor.address);
+    printk(TTY_KERNEL, "Loaded GDT at 0x%p\n", descriptor.address);
 }
 
 static void _ke_init_idt(void) {
-    printf("Setting up the Interrupt Descriptor Table... ");
     idt_descriptor_t descriptor = idt_init_interrupt_descriptor_table();
 
     isr_set_handler(DE_EXC_VECTOR, (uintptr_t)&division_by_zero_exception_handler);
@@ -114,24 +97,44 @@ static void _ke_init_idt(void) {
     isr_set_handler(BP_TRAP_VECTOR, (uintptr_t)&breakpoint_trap_handler);
     isr_set_handler(OF_TRAP_VECTOR, (uintptr_t)&overflow_trap_handler);
 
-    printf("\\[2Loaded @\\X 0x%08X\n", descriptor.address);
+    printk(TTY_KERNEL, "Loaded IDT at 0x%p\n", descriptor.address);
 }
 
 static void _ke_init_pic(void) {
-    printf("Initializing 8259A PIC... ");
     pic_remap(32, 40);
-    printf("\\[2OK\\X\nIRQ_VEC_START_\\[AMASTER\\X = 32\nIRQ_VEC_START_\\[ASLAVE\\X = 40\n");
+    printk(TTY_KERNEL, "Initialized PIC\n");
 }
 
 static void _ke_init_pit(void) {
-    printf("Initializing system timer... ");
     pit_init();
     pit_set_frequency(100);
-    printf("\\[2Initialized @\\X %dHz\n", pit_get_current_frequency());
+    printk(TTY_KERNEL, "System timer initialized with frequency of %dHz\n", pit_get_current_frequency());
 }
 
 static void _ke_init_kbd(void) {
-    printf("Initializing keyboard... ");
     kbd_init();
-    printf("\\[2OK\\X\n");
+    printk(TTY_KERNEL, "Looks like we got keyboard working...\n");
 }
+
+static void _ke_pit_callback(void) {
+    char *text = { 0 };
+
+    uint32_t total_ticks = pit_get_total_ticks();
+    sprintf(text, "Total ticks since boot: %d", total_ticks);
+
+    tty_set_statusbar_text(TTY_KERNEL, text);
+}
+
+static void _ke_tty_callback(tty_terminal_info_t* terminal) {
+    if(terminal->index == TTY_KERNEL) {
+        tty_set_colors(
+            terminal->index,
+            TTY_SET_COLOR_STATUSBAR | TTY_SET_COLOR_FOREGROUND |
+            TTY_SET_COLOR_BACKGROUND | TTY_UPDATE_ATTRIBUTES,
+            COLOR_WHITE, COLOR_BLUE
+        );
+    } else {
+        tty_set_statusbar_text(terminal->index, " ");
+    }
+}
+

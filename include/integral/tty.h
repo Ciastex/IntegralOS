@@ -44,7 +44,9 @@ typedef struct tty_terminal_info {
     tty_attributes_t attributes;
 } __attribute((packed)) tty_terminal_info_t;
 
-void tty_init_terminals(void);
+typedef void (post_init_callback_t)(tty_terminal_info_t *terminal);
+
+void tty_init_terminals(post_init_callback_t callback);
 void tty_write_line(uint8_t terminal_index, const char *string);
 void tty_write(uint8_t terminal_index, const char *string);
 void tty_put_char(uint8_t terminal_index, char character);
