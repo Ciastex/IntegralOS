@@ -24,6 +24,8 @@
 
 #include <display/vga.h>
 
+#include <memory/mman.h>
+
 #include <io/port_io.h>
 #include <io/8259a/pic.h>
 #include <io/8259a/pit.h>
@@ -37,21 +39,28 @@ static void _ke_init_pit(void);
 static void _ke_init_kbd(void);
 static void _ke_pit_callback(void);
 static void _ke_tty_callback(tty_terminal_info_t* terminal);
+static void _ke_tty_switch_callback(tty_terminal_info_t* current, tty_terminal_info_t* prev);
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
+    asm volatile("cli");
+
     tty_init_terminals(_ke_tty_callback);
-    tty_set_statusbar_text(0, "Hello, world.");
+    tty_set_on_switch_callback(&_ke_tty_switch_callback);
 
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
     } else {
         _ke_print_welcome_screen();
-
         _ke_init_gdt();
         _ke_init_idt();
+        _ke_init_kbd();
+
+        mman_meminfo_t physmem_info = mman_initialize(multiboot_info);
+        printk(TTY_KERNEL, "Total memory size: ");
+        printk(TTY_KERNEL, " %dKB\n", physmem_info.usable_size / 1024);
+
         _ke_init_pic();
         _ke_init_pit();
-        _ke_init_kbd();
 
         pit_set_callback((uintptr_t)&_ke_pit_callback);
         for(;;);
@@ -65,7 +74,7 @@ static void _ke_print_welcome_screen(void) {
     }
     printf("\n");
     printf("Preparing the operating system environment...\n");
-    printf("Use keys F1-F8 to switch between virtual terminals.\n\n");
+    printf("Use keys F1-F8 to switch between virtual terminals.\n");
 }
 
 static void _ke_init_gdt(void) {
@@ -135,6 +144,12 @@ static void _ke_tty_callback(tty_terminal_info_t* terminal) {
         );
     } else {
         tty_set_statusbar_text(terminal->index, " ");
+    }
+}
+
+static void _ke_tty_switch_callback(tty_terminal_info_t* current, tty_terminal_info_t* prev) {
+    if(current->index == 0) {
+        printf("%d, %d", current->cursor.info.x, current->cursor.info.y);
     }
 }
 

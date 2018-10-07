@@ -38,10 +38,10 @@ void vga_put_char_at_cursor(uint16_t* buffer, vga_cursor_info_t cursor, vga_attr
 }
 
 void vga_set_cursor_position(uint16_t* buffer, vga_coord_t x, vga_coord_t y) {
-    // apparently vga is retarded here too, so we have to provide
-    // a base address and divide it by 2, since addressing is 32-bit as well
     vga_coord_t target_coord = ((uint32_t)buffer / 2) + (y * VGA_WIDTH) + x;
 
+    // apparently vga is retarded here too, so we have to provide
+    // a base address and divide it by 2, since addressing is 32-bit as well
     outb(VGA_BASE_PORT, VGA_CMD_CURSOR_LOW);
     outb(VGA_DATA_PORT, (uint8_t)(target_coord & 0xFF));
 

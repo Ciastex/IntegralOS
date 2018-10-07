@@ -30,7 +30,9 @@ static vga_color_t _tty_determine_output_color(char character);
 static uint8_t current_terminal_index = 0;
 static tty_terminal_info_t terminals[TTY_MAX_TERMINALS] = { 0 };
 
-void tty_init_terminals(post_init_callback_t callback) {
+static tty_on_switch_callback_t* _on_switch = 0;
+
+void tty_init_terminals(tty_post_init_callback_t callback) {
     for(uint8_t i = 0; i < TTY_MAX_TERMINALS; i++) {
         vga_cursor_info_t cursor_info;
         tty_cursor_t cursor;
@@ -64,7 +66,7 @@ void tty_init_terminals(post_init_callback_t callback) {
         terminal.colors = colors;
         terminal.attributes = attributes;
 
-        tty_update_hardware_cursor(&terminal);
+        tty_update_hardware_cursor(&terminal, true);
         terminals[terminal.index] = terminal;
 
         vga_clear_screen(terminal.buffer, terminal.attributes.buffer);
@@ -74,6 +76,7 @@ void tty_init_terminals(post_init_callback_t callback) {
             callback(&terminal);
     }
 
+    current_terminal_index = 0;
     kbd_set_pressed_callback(_tty_keypress_handler);
 }
 
@@ -93,10 +96,7 @@ void tty_read_line(char* buffer, size_t count) {
     while(_reading_line);
 }
 
-void tty_write(uint8_t terminal_index, const char *string) {
-    if(terminal_index == TTY_CURRENT_TERMINAL)
-        terminal_index = current_terminal_index;
-
+void tty_write(uint8_t terminal_index, const char* string) {
     size_t length = strlen(string);
 
     for(size_t i = 0; i < length; i++) {
@@ -167,25 +167,24 @@ void tty_put_char(uint8_t terminal_index, char character) {
         if(terminal->cursor.info.x - 1 < 0) {
             if(terminal->cursor.info.y > 0) {
                 terminal->cursor.info.x = VGA_WIDTH - 1;
-                terminal->cursor.info.y -= 1;
+                terminal->cursor.info.y--;
             }
             else { return; }
         }
         else {
-            terminal->cursor.info.x -= 1;
+            terminal->cursor.info.x--;
         }
         vga_put_char_at(terminal->buffer, terminal->cursor.info.x, terminal->cursor.info.y, terminal->attributes.buffer, ' ');
     } else {
         vga_put_char_at(terminal->buffer, terminal->cursor.info.x, terminal->cursor.info.y, terminal->attributes.buffer, character);
 
         if(terminal->cursor.info.x < VGA_WIDTH - 1) {
-            terminal->cursor.info.x += 1;
+            terminal->cursor.info.x++;
         } else {
             _tty_put_newline(terminal);
         }
     }
-
-    tty_update_hardware_cursor(terminal);
+    tty_update_hardware_cursor(terminal, false);
 }
 
 void tty_set_statusbar_text(uint8_t terminal_index, const char *text) {
@@ -205,13 +204,13 @@ void tty_set_statusbar_text(uint8_t terminal_index, const char *text) {
     }
 }
 
-void tty_update_hardware_cursor(tty_terminal_info_t* terminal) {
+void tty_update_hardware_cursor(tty_terminal_info_t* terminal, bool force) {
     if(terminal->cursor.enabled)
         vga_enable_cursor();
     else vga_disable_cursor();
 
-    if(terminal->index == current_terminal_index) {
-        vga_set_cursor_position(terminal->buffer, terminal->cursor.info.x, terminal->cursor.info.y);
+    if(terminal->index == current_terminal_index || force) {
+        vga_set_cursor(terminal->buffer, &terminal->cursor.info);
     }
 }
 
@@ -269,24 +268,43 @@ void tty_reset_colors(uint8_t terminal_index, tty_setcolor_flags_t flags) {
 }
 
 void tty_set_terminal(uint8_t index) {
-    if(current_terminal_index == index || index >= TTY_MAX_TERMINALS) return;
-    current_terminal_index = index;
+    if(index == current_terminal_index || index >= TTY_MAX_TERMINALS || index < 0)
+        return;
 
+    tty_terminal_info_t* prev_terminal = tty_get_terminal(current_terminal_index);
     tty_terminal_info_t* terminal = tty_get_terminal(index);
+
     vga_set_address_space(terminal->buffer);
 
-    tty_update_hardware_cursor(terminal);
+    tty_update_hardware_cursor(terminal, true);
+    current_terminal_index = index;
+
+    if(_on_switch) {
+        _on_switch(terminal, prev_terminal);
+    }
 }
 
-tty_terminal_info_t* tty_get_terminal(uint8_t index) {
-    return &terminals[index];
+void tty_set_on_switch_callback(tty_on_switch_callback_t* callback) {
+    _on_switch = callback;
+}
+
+tty_terminal_info_t* tty_get_terminal(uint8_t terminal_index) {
+    return &terminals[terminal_index];
+}
+
+tty_terminal_info_t* tty_get_current_terminal(void) {
+    return &terminals[current_terminal_index];
+}
+
+uint8_t tty_get_current_terminal_index(void) {
+    return terminals[current_terminal_index].index;
 }
 
 static void _tty_put_newline(tty_terminal_info_t *terminal) {
     terminal->cursor.info.x = 0;
 
     if(terminal->cursor.info.y < VGA_HEIGHT - 2) {
-        terminal->cursor.info.y += 1;
+        terminal->cursor.info.y++;
     } else {
         terminal->cursor.info.y = VGA_HEIGHT - 2;
         vga_scroll(terminal->buffer, VGA_HEIGHT - 2, terminal->attributes.buffer);
