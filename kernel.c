@@ -29,57 +29,57 @@
 #include <io/port_io.h>
 #include <io/8259a/pic.h>
 #include <io/8259a/pit.h>
-#include <io/keyboard/keyboard.h>
+#include <io/8042/ps2.h>
 
 static void _ke_print_welcome_screen(void);
 static void _ke_init_gdt(void);
 static void _ke_init_idt(void);
 static void _ke_init_pic(void);
 static void _ke_init_pit(void);
-static void _ke_init_kbd(void);
+static void _ke_init_ps2(void);
 static void _ke_pit_callback(void);
 static void _ke_tty_callback(tty_terminal_info_t* terminal);
 static void _ke_tty_switch_callback(tty_terminal_info_t* current, tty_terminal_info_t* prev);
 
 void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
-    asm volatile("cli");
-
     tty_init_terminals(_ke_tty_callback);
     tty_set_on_switch_callback(&_ke_tty_switch_callback);
 
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
     } else {
-        _ke_print_welcome_screen();
         _ke_init_gdt();
         _ke_init_idt();
-        _ke_init_kbd();
-
-        mman_meminfo_t physmem_info = mman_initialize(multiboot_info);
-        printk(TTY_KERNEL, "Total memory size: ");
-        printk(TTY_KERNEL, " %dKB\n", physmem_info.usable_size / 1024);
-
         _ke_init_pic();
         _ke_init_pit();
+        _ke_init_ps2();
+
+        ps2_drv_state_t state = ps2_get_drv_state();
+
+        switch(state.ports[0].device) {
+        case KEYBOARD: printf("ps/2 device port 0: %s (0x%02X)", "standard keyboard", state.ports[0].device); break;
+        }
+
 
         pit_set_callback((uintptr_t)&_ke_pit_callback);
+
+        _ke_print_welcome_screen();
         for(;;);
     }
 }
 
 static void _ke_print_welcome_screen(void) {
-    printf("\\[AIntegral OS kernel\\X v%s\n%s\n", INTEGRAL_VERSION, INTEGRAL_COPYRIGHT);
+    printf("\n\\[AIntegral OS kernel\\X v%s\n%s\n", INTEGRAL_VERSION, INTEGRAL_COPYRIGHT);
     for(size_t i = 0; i < 40; i++) {
         printf("-");
     }
     printf("\n");
     printf("Preparing the operating system environment...\n");
-    printf("Use keys F1-F8 to switch between virtual terminals.\n");
 }
 
 static void _ke_init_gdt(void) {
     gdt_descriptor_t descriptor = gdt_init_global_descriptor_table();
-    printk(TTY_KERNEL, "Loaded GDT at 0x%p\n", descriptor.address);
+    printf("_ke_init_gdt: 0x%p\n", descriptor.address);
 }
 
 static void _ke_init_idt(void) {
@@ -106,27 +106,28 @@ static void _ke_init_idt(void) {
     isr_set_handler(BP_TRAP_VECTOR, (uintptr_t)&breakpoint_trap_handler);
     isr_set_handler(OF_TRAP_VECTOR, (uintptr_t)&overflow_trap_handler);
 
-    printk(TTY_KERNEL, "Loaded IDT at 0x%p\n", descriptor.address);
+    printf("_ke_init_idt: 0x%p\n", descriptor.address);
 }
 
 static void _ke_init_pic(void) {
     pic_remap(32, 40);
-    printk(TTY_KERNEL, "Initialized PIC\n");
+    printf("_ke_init_pic: IRQs remapped\n");
 }
 
 static void _ke_init_pit(void) {
     pit_init();
     pit_set_frequency(100);
-    printk(TTY_KERNEL, "System timer initialized with frequency of %dHz\n", pit_get_current_frequency());
+    printf("_ke_init_pit: initialized timer. freq: %dHz\n", pit_get_current_frequency());
 }
 
-static void _ke_init_kbd(void) {
-    kbd_init();
-    printk(TTY_KERNEL, "Looks like we got keyboard working...\n");
+static void _ke_init_ps2(void) {
+    printf("_ke_init_ps2: start\n");
+    ps2_initialize();
+    printf("_ke_init_ps2: done\n");
 }
 
 static void _ke_pit_callback(void) {
-    char *text = { 0 };
+    char text[80];
 
     uint32_t total_ticks = pit_get_total_ticks();
     sprintf(text, "Total ticks since boot: %d", total_ticks);
@@ -143,13 +144,11 @@ static void _ke_tty_callback(tty_terminal_info_t* terminal) {
             COLOR_WHITE, COLOR_BLUE
         );
     } else {
-        tty_set_statusbar_text(terminal->index, " ");
+        tty_set_statusbar_text(terminal->index, "IntegralOS");
     }
 }
 
 static void _ke_tty_switch_callback(tty_terminal_info_t* current, tty_terminal_info_t* prev) {
-    if(current->index == 0) {
-        printf("%d, %d", current->cursor.info.x, current->cursor.info.y);
-    }
+
 }
 

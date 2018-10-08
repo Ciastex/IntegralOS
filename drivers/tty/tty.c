@@ -10,21 +10,20 @@
 
 #include <integral/tty.h>
 #include <display/vga.h>
-#include <io/keyboard/keyboard.h>
 
 static const vga_color_t TTY_DEFAULT_BUFFER_BG = COLOR_BLACK;
 static const vga_color_t TTY_DEFAULT_BUFFER_FG = COLOR_WHITE;
 static const vga_color_t TTY_DEFAULT_STATUSBAR_BG = COLOR_GREEN;
 static const vga_color_t TTY_DEFAULT_STATUSBAR_FG = COLOR_LIGHT_BROWN;
 
-static bool _reading_line = false;
+/*static bool _reading_line = false;
 static char* _readline_buffer;
 static size_t _readline_count = 0;
 static size_t _readline_max = 0;
 static uint8_t _readline_framebuffer_index = 0;
+*/
 
 static void _tty_put_newline(tty_terminal_info_t* terminal);
-static void _tty_keypress_handler(key_info_t key_info);
 static vga_color_t _tty_determine_output_color(char character);
 
 static uint8_t current_terminal_index = 0;
@@ -77,7 +76,6 @@ void tty_init_terminals(tty_post_init_callback_t callback) {
     }
 
     current_terminal_index = 0;
-    kbd_set_pressed_callback(_tty_keypress_handler);
 }
 
 void tty_write_line(uint8_t terminal_index, const char *string) {
@@ -85,7 +83,7 @@ void tty_write_line(uint8_t terminal_index, const char *string) {
     tty_put_char(terminal_index, '\n');
 }
 
-void tty_read_line(char* buffer, size_t count) {
+/*void tty_read_line(char* buffer, size_t count) {
     memset(buffer, 0, count);
     _readline_buffer = buffer;
     _readline_max = count;
@@ -94,7 +92,7 @@ void tty_read_line(char* buffer, size_t count) {
     _readline_framebuffer_index = current_terminal_index;
 
     while(_reading_line);
-}
+}*/
 
 void tty_write(uint8_t terminal_index, const char* string) {
     size_t length = strlen(string);
@@ -347,38 +345,5 @@ static vga_color_t _tty_determine_output_color(char character) {
             return COLOR_WHITE;
         default:
             return COLOR_BLACK;
-    }
-}
-
-static void _tty_keypress_handler(key_info_t key_info) {
-    if(_reading_line && _readline_framebuffer_index == current_terminal_index) {
-        if(key_info.key_code == VK_RETURN) {
-            _readline_buffer[_readline_count] = 0;
-            _reading_line = false;
-        }
-        else if(key_info.key_code == VK_BACKSPACE && _readline_count > 0)
-        {
-            _readline_buffer[_readline_count--] = 0;
-            tty_put_char(_readline_framebuffer_index, '\b');
-        }
-        else if(key_info.character >= 0x20 && key_info.character <= 0x7E) {
-            if(_readline_count >= _readline_max - 2) return;
-
-            _readline_buffer[_readline_count++] = key_info.character;
-            tty_put_char(_readline_framebuffer_index, key_info.character);
-        }
-    }
-
-    switch(key_info.key_code)
-    {
-        case VK_F1: tty_set_terminal(0); break;
-        case VK_F2: tty_set_terminal(1); break;
-        case VK_F3: tty_set_terminal(2); break;
-        case VK_F4: tty_set_terminal(3); break;
-        case VK_F5: tty_set_terminal(4); break;
-        case VK_F6: tty_set_terminal(5); break;
-        case VK_F7: tty_set_terminal(6); break;
-        case VK_F8: tty_set_terminal(7); break;
-        default: break;
     }
 }
