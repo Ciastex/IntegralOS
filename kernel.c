@@ -30,6 +30,7 @@
 #include <io/8259a/pic.h>
 #include <io/8259a/pit.h>
 #include <io/8042/ps2.h>
+#include <io/keyboard/keyboard.h>
 
 static void _ke_print_welcome_screen(void);
 static void _ke_init_gdt(void);
@@ -54,12 +55,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         _ke_init_pit();
         _ke_init_ps2();
 
-        ps2_drv_state_t state = ps2_get_drv_state();
-
-        switch(state.ports[0].device) {
-        case KEYBOARD: printf("ps/2 device port 0: %s (0x%02X)", "standard keyboard", state.ports[0].device); break;
-        }
-
+        kbd_initialize();
 
         pit_set_callback((uintptr_t)&_ke_pit_callback);
 

@@ -4,6 +4,7 @@
 
 #include <io/8042/ps2.h>
 #include <io/port_io.h>
+#include <integral/timer.h>
 
 static bool _ps2_is_status(ps2_status_t status, ps2_flags_t flags);
 
@@ -90,6 +91,10 @@ void ps2_send(ps2_port_t port, ps2_word_t packet) {
 
     _driver_state.last_port_used = port;
     _driver_state.last_packet_sent = packet;
+}
+
+void ps2_send_io(ps2_word_t packet) {
+    ps2_send(PS2_PORT_IO, packet);
 }
 
 void ps2_resend_last(void) {
@@ -291,6 +296,10 @@ void ps2_reset_cpu(void) {
 
 ps2_drv_state_t ps2_get_drv_state(void) {
     return _driver_state;
+}
+
+void ps2_wait_io(void) {
+    sleep(20);
 }
 
 static bool _ps2_is_status(ps2_status_t status, ps2_flags_t flags) {

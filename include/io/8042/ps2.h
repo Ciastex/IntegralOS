@@ -34,10 +34,11 @@
 #define PS2_CMD_SWITCH_PORT2  0xD4
 #define PS2_CMD_PULSE_RESETLN 0xFE
 
-#define PS2_DEVCMD_ENABLE_SCANNING 0xF4
+#define PS2_DEVCMD_ENABLE_SCANNING  0xF4
 #define PS2_DEVCMD_DISABLE_SCANNING 0xF5
 #define PS2_DEVCMD_IDENTIFY         0xF2
 #define PS2_DEVRESPONSE_ACK         0xFA
+#define PS2_DEVRESPONSE_RESEND      0xFE
 
 #define PS2_TESTRESULT_PORT_OK    0x00
 #define PS2_TESTRESULT_CLOCK_LOW  0x01
@@ -82,6 +83,7 @@ typedef struct ps2_data {
 
 void ps2_initialize(void);
 void ps2_send(ps2_port_t port, ps2_word_t packet);
+void ps2_send_io(ps2_word_t packet);
 void ps2_resend_last(void);
 bool ps2_read(ps2_word_t* retval);
 ps2_status_t ps2_read_status(void);
@@ -95,5 +97,6 @@ bool ps2_test_controller(ps2_word_t* out_response);
 bool ps2_test_port(uint8_t port, ps2_word_t* out_response);
 void ps2_reset_cpu(void);
 ps2_drv_state_t ps2_get_drv_state(void);
+void ps2_wait_io(void);
 
 #endif // INCLUDE_IO_8042_PS2_H_
