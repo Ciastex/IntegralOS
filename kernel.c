@@ -49,11 +49,11 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
     } else {
+        _ke_init_ps2();
         _ke_init_gdt();
         _ke_init_idt();
         _ke_init_pic();
         _ke_init_pit();
-        _ke_init_ps2();
 
         kbd_initialize();
 

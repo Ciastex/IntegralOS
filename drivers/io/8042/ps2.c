@@ -11,8 +11,9 @@ static bool _ps2_is_status(ps2_status_t status, ps2_flags_t flags);
 static ps2_drv_state_t _driver_state = { 0 };
 
 void ps2_initialize(void) {
-    ps2_set_port_state(PS2_PORT1, false);
-    ps2_set_port_state(PS2_PORT2, false);
+    ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_1);
+    ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_2);
+
     ps2_flush_data_port();
 
     ps2_word_t config = ps2_get_configuration_byte();
@@ -56,19 +57,26 @@ void ps2_initialize(void) {
 
     printf("ps2_initialize: post-test config byte status is %08b\n", config);
     if(_driver_state.ports[PS2_PORT1].operational) {
-        ps2_set_port_state(PS2_PORT1, true);
+        ps2_send(PS2_REG_CMD, PS2_CMD_ENABLEPORT_1);
         ps2_identify_device(PS2_PORT1);
         SET_BIT(config, 0);
     }
-
-    if(_driver_state.ports[PS2_PORT2].operational) {
-        ps2_set_port_state(PS2_PORT2, true);
-        ps2_identify_device(PS2_PORT2);
-        SET_BIT(config, 1);
+    else {
+        printf("ps2_initialize: port1 inoperational, skipping init.\n");
     }
 
-    printf("ps2_initialize: final config byte status is %08b\n", config);
+    if(_driver_state.ports[PS2_PORT2].operational) {
+        ps2_send(PS2_REG_CMD, PS2_CMD_ENABLEPORT_2);
+        ps2_identify_device(PS2_PORT2);
+        SET_BIT(config, 1);
+    } else {
+        printf("ps2_initialize: port2 inoperational, skipping init.\n");
+    }
+
     ps2_set_configuration_byte(config);
+    printf("ps2_initialize: final config byte status is %08b\n", ps2_get_configuration_byte());
+
+    asm volatile("sti");
 }
 
 void ps2_send(ps2_port_t port, ps2_word_t packet) {
@@ -139,29 +147,8 @@ ps2_word_t ps2_get_configuration_byte(void) {
 }
 
 void ps2_set_configuration_byte(ps2_word_t new_value) {
-    asm volatile("cli");
-
     ps2_send(PS2_REG_CMD, PS2_CMD_SETCONFIGBYTE);
     ps2_send(PS2_PORT_IO, new_value);
-
-    asm volatile("sti");
-}
-
-void ps2_set_port_state(uint8_t port, bool enable) {
-    char* action = "disable";
-    if(enable) action = "enable";
-
-    if(port == PS2_PORT1) {
-        if(enable)
-            ps2_send(PS2_REG_CMD, PS2_CMD_ENABLEPORT_1);
-        else
-            ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_1);
-    } else if(port == PS2_PORT2) {
-        if(enable)
-            ps2_send(PS2_REG_CMD, PS2_CMD_ENABLEPORT_2);
-        else
-            ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_2);
-    } else printf("ps2_disable_port: tried to %s non-existent port %d\n", action, port);
 }
 
 void ps2_flush_data_port(void) {
@@ -186,12 +173,12 @@ ps2_devtype_t ps2_identify_device(uint8_t port) {
     ps2_send(PS2_PORT_IO, PS2_DEVCMD_DISABLE_SCANNING);
     ps2_wait_for_data(&data);
     if(data.response != PS2_DEVRESPONSE_ACK || data.timeout)
-        printf("ps2_identify_device: no ACK received or timeout reached: 0x%02X\n", data.response);
+        printf("ps2_identify_device 176: no ACK received or timeout reached: 0x%02X\n", data.response);
 
     ps2_send(PS2_PORT_IO, PS2_DEVCMD_IDENTIFY);
     ps2_wait_for_data(&data);
     if(data.response != PS2_DEVRESPONSE_ACK || data.timeout)
-        printf("ps2_identify_device: no ACK received or timeout reached: 0x%02X\n", data.response);
+        printf("ps2_identify_device 181: no ACK received or timeout reached: 0x%02X\n", data.response);
 
     bool has_idents = true;
     uint8_t ident_bytes[2] = { 0 };
@@ -231,7 +218,7 @@ ps2_devtype_t ps2_identify_device(uint8_t port) {
                     _driver_state.ports[port].device = KEYBOARD;
                     break;
                 default:
-                    printf("ps2_identify_device: unexpected device byte 1: 0x%02X", ident_bytes[1]);
+                    printf("ps2_identify_device: unexpected device byte 1: 0x%02X\n", ident_bytes[1]);
                     break;
             }
             break;
@@ -291,6 +278,7 @@ bool ps2_test_port(uint8_t port, ps2_word_t* out_response) {
 }
 
 void ps2_reset_cpu(void) {
+    asm volatile("cli");
     outb(PS2_REG_CMD, PS2_CMD_PULSE_RESETLN);
 }
 
@@ -300,6 +288,11 @@ ps2_drv_state_t ps2_get_drv_state(void) {
 
 void ps2_wait_io(void) {
     sleep(20);
+}
+
+bool ps2_can_read(void) {
+    ps2_status_t status = ps2_read_status();
+    return _ps2_is_status(status, PS2_STATUS_OUTPUT);
 }
 
 static bool _ps2_is_status(ps2_status_t status, ps2_flags_t flags) {

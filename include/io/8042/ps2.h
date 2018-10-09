@@ -89,7 +89,6 @@ bool ps2_read(ps2_word_t* retval);
 ps2_status_t ps2_read_status(void);
 ps2_word_t ps2_get_configuration_byte(void);
 void ps2_set_configuration_byte(ps2_word_t new_value);
-void ps2_set_port_state(uint8_t port, bool enable);
 void ps2_flush_data_port(void);
 void ps2_wait_for_data(ps2_data_t* out_status);
 ps2_devtype_t ps2_identify_device(uint8_t port);
@@ -98,5 +97,6 @@ bool ps2_test_port(uint8_t port, ps2_word_t* out_response);
 void ps2_reset_cpu(void);
 ps2_drv_state_t ps2_get_drv_state(void);
 void ps2_wait_io(void);
+bool ps2_can_read(void);
 
 #endif // INCLUDE_IO_8042_PS2_H_
