@@ -49,28 +49,46 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
     } else {
-        _ke_init_ps2();
+        asm volatile("cli");
+
         _ke_init_gdt();
         _ke_init_idt();
         _ke_init_pic();
         _ke_init_pit();
-
+        _ke_init_ps2();
         kbd_initialize();
 
-        pit_set_callback((uintptr_t)&_ke_pit_callback);
+        asm volatile("sti");
 
+        pit_set_callback((uintptr_t)&_ke_pit_callback);
         _ke_print_welcome_screen();
+
+        while(true) {
+            printf("$> ");
+            char buffer[255] = { 0 };
+            tty_read_line(0, buffer, 255);
+
+            if(!strcmp(buffer, "test")) {
+                printf("yay!\n");
+            }
+
+            char *statbar = { 0 };
+            sprintf(statbar, "last input: %s", buffer);
+            tty_set_statusbar_text(0, statbar);
+        }
+
         for(;;);
     }
 }
 
 static void _ke_print_welcome_screen(void) {
-    printf("\n\\[AIntegral OS kernel\\X v%s\n%s\n", INTEGRAL_VERSION, INTEGRAL_COPYRIGHT);
+    printf("\n\\[AIntegral OS kernel\\X v%s\n", INTEGRAL_VERSION);
     for(size_t i = 0; i < 40; i++) {
         printf("-");
     }
     printf("\n");
     printf("Preparing the operating system environment...\n");
+    printf("Use keys F1-F8 to switch virtual terminals.\n");
 }
 
 static void _ke_init_gdt(void) {
@@ -123,7 +141,7 @@ static void _ke_init_ps2(void) {
 }
 
 static void _ke_pit_callback(void) {
-    char text[80];
+    char* text = { 0 };
 
     uint32_t total_ticks = pit_get_total_ticks();
     sprintf(text, "Total ticks since boot: %d", total_ticks);
@@ -138,6 +156,13 @@ static void _ke_tty_callback(tty_terminal_info_t* terminal) {
             TTY_SET_COLOR_STATUSBAR | TTY_SET_COLOR_FOREGROUND |
             TTY_SET_COLOR_BACKGROUND | TTY_UPDATE_ATTRIBUTES,
             COLOR_WHITE, COLOR_BLUE
+        );
+    } else if(terminal->index == 0) {
+        tty_set_colors(
+            terminal->index,
+            TTY_SET_COLOR_STATUSBAR | TTY_SET_COLOR_FOREGROUND |
+            TTY_SET_COLOR_BACKGROUND | TTY_UPDATE_ATTRIBUTES,
+            COLOR_BLACK, COLOR_GREEN
         );
     } else {
         tty_set_statusbar_text(terminal->index, "IntegralOS");

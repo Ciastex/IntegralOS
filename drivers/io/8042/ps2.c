@@ -11,11 +11,6 @@ static bool _ps2_is_status(ps2_status_t status, ps2_flags_t flags);
 static ps2_drv_state_t _driver_state = { 0 };
 
 void ps2_initialize(void) {
-    ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_1);
-    ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_2);
-
-    ps2_flush_data_port();
-
     ps2_word_t config = ps2_get_configuration_byte();
     printf("ps2_initialize: initial config byte status is %08b\n", config);
 
@@ -25,6 +20,11 @@ void ps2_initialize(void) {
     CLEAR_BIT(config, 1); // disable irq 12
     CLEAR_BIT(config, 6); // disable translation
     ps2_set_configuration_byte(config);
+
+    // this needs to be AFTER config bits removal, apparently.
+    // otherwise it doesn't work
+    ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_1);
+    ps2_send(PS2_REG_CMD, PS2_CMD_DISABLEPORT_2);
 
     ps2_word_t test_response;
     if(!ps2_test_controller(&test_response)) {
@@ -58,7 +58,6 @@ void ps2_initialize(void) {
     printf("ps2_initialize: post-test config byte status is %08b\n", config);
     if(_driver_state.ports[PS2_PORT1].operational) {
         ps2_send(PS2_REG_CMD, PS2_CMD_ENABLEPORT_1);
-        ps2_identify_device(PS2_PORT1);
         SET_BIT(config, 0);
     }
     else {
@@ -67,7 +66,6 @@ void ps2_initialize(void) {
 
     if(_driver_state.ports[PS2_PORT2].operational) {
         ps2_send(PS2_REG_CMD, PS2_CMD_ENABLEPORT_2);
-        ps2_identify_device(PS2_PORT2);
         SET_BIT(config, 1);
     } else {
         printf("ps2_initialize: port2 inoperational, skipping init.\n");
@@ -80,6 +78,8 @@ void ps2_initialize(void) {
 }
 
 void ps2_send(ps2_port_t port, ps2_word_t packet) {
+    ps2_flush_data_port();
+
     uint8_t max_retries = PS2_MAX_RETRIES;
 
     while(max_retries--) {
@@ -170,15 +170,12 @@ ps2_devtype_t ps2_identify_device(uint8_t port) {
 
     ps2_data_t data;
 
-    ps2_send(PS2_PORT_IO, PS2_DEVCMD_DISABLE_SCANNING);
-    ps2_wait_for_data(&data);
-    if(data.response != PS2_DEVRESPONSE_ACK || data.timeout)
-        printf("ps2_identify_device 176: no ACK received or timeout reached: 0x%02X\n", data.response);
-
     ps2_send(PS2_PORT_IO, PS2_DEVCMD_IDENTIFY);
     ps2_wait_for_data(&data);
-    if(data.response != PS2_DEVRESPONSE_ACK || data.timeout)
+    if(data.response != PS2_DEVRESPONSE_ACK || data.timeout) {
         printf("ps2_identify_device 181: no ACK received or timeout reached: 0x%02X\n", data.response);
+        ps2_wait_for_data(&data);
+    }
 
     bool has_idents = true;
     uint8_t ident_bytes[2] = { 0 };

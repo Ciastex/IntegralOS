@@ -5,24 +5,55 @@
 #include <stdio.h>
 
 #include <io/keyboard/keyboard.h>
+#include <io/keyboard/keymap.h>
 #include <io/8042/ps2.h>
 #include <hal/irq.h>
 
 static bool _kbd_send_io(ps2_word_t packet, ps2_data_t* data);
 static void _kbd_internal(irq_info_t* irq);
 
+static uint16_t _current_handler_id = 0;
+static kbd_keypress_handler_t* _keypress_handlers[KBD_MAX_KEYPRESS_HANDLERS] = { 0 };
+
+static kbd_status_t _status = { 0 };
+
 void kbd_initialize(void) {
     if(!kbd_reset()) {
         printf("kbd_initialize: reset failed.\n");
-        return;
     }
 
     kbd_set_scancode_set(SCANCODE_SET_3);
     kbd_set_scanning(true);
 
     irq_set_handler(1, (uintptr_t)&_kbd_internal);
+}
 
-    ps2_flush_data_port();
+uint16_t kbd_add_keypress_handler(kbd_keypress_handler_t* handler) {
+    if(_current_handler_id + 1 > KBD_MAX_KEYPRESS_HANDLERS) return KBD_KEYPRESS_HANDLER_LIMIT_EXCEEDED;
+    uint16_t ret = _current_handler_id;
+
+    _keypress_handlers[_current_handler_id++] = handler;
+
+    return ret;
+}
+
+bool kbd_remove_keypress_handler(uint16_t id) {
+    if(!_current_handler_id) return false;
+    if(!_keypress_handlers[id]) return false;
+
+    _keypress_handlers[id] = 0;
+
+    for(uint16_t i = id; i < KBD_MAX_KEYPRESS_HANDLERS; i++) {
+        if(id + 1 > KBD_MAX_KEYPRESS_HANDLERS) break;
+        if(!_keypress_handlers[i + 1]) break;
+
+        kbd_keypress_handler_t* tmp = _keypress_handlers[i + 1];
+        _keypress_handlers[i + 1] = 0;
+        _keypress_handlers[i] = tmp;
+    }
+
+    _current_handler_id--;
+    return true;
 }
 
 bool kbd_reset(void) {
@@ -40,6 +71,10 @@ bool kbd_reset(void) {
     if(data.timeout) {
         printf("kbd_reset: timeout while getting test result. giving up.\n");
         return false;
+    }
+
+    while(data.response == PS2_DEVRESPONSE_ACK) {
+        ps2_wait_for_data(&data);
     }
 
     if(data.response == KBDRESPONSE_TESTFAILED_1 || data.response == KBDRESPONSE_TESTFAILED_2) {
@@ -95,6 +130,11 @@ void kbd_set_scancode_set(kbd_scancode_set_t set) {
         if(data.timeout) {
             printf("kbd_set_scancode_set: can't be sure if scancode is set; timeout\n");
         } else printf("kbd_set_scancode_set: invalid response 0x%02X\n", data.response);
+
+        while(ps2_can_read()) {
+            ps2_wait_for_data(&data);
+            printf("%02X\n", data.response);
+        }
     }
 }
 
@@ -158,9 +198,39 @@ static void _kbd_internal(irq_info_t* irq) {
             ps2_wait_for_data(&data);
         }
 
-        if(pressed)
-            printf("press: %08b\n", data.response);
-        else printf("release: %08b\n", data.response);
+        // laptop keyboard?
+        //if(data.response == 0xE0) {
+        //    pressed = true;
+        //    ps2_wait_for_data(&data);
+        //}
+
+        switch(data.response) {
+            case VK_LSHIFT: _status.control_keys.lshift = pressed; break;
+            case VK_RSHIFT: _status.control_keys.rshift = pressed; break;
+            case VK_LALT:   _status.control_keys.lalt = pressed; break;
+            case VK_RALT:   _status.control_keys.ralt = pressed; break;
+            case VK_LCTRL:  _status.control_keys.lctrl = pressed; break;
+            case VK_RCTRL:  _status.control_keys.rctrl = pressed; break;
+            case VK_LMETA:  _status.control_keys.lmeta = pressed; break;
+            case VK_RMETA:  _status.control_keys.rmeta = pressed; break;
+            default: break;
+        }
+
+        char character = keymap_unshifted[data.response];
+        if(_status.control_keys.lshift || _status.control_keys.rshift) {
+            character = keymap_shifted[data.response];
+        }
+
+        kbd_event_data_t evdata;
+        evdata.scancode = data.response;
+        evdata.control_keys = _status.control_keys;
+        evdata.pressed = pressed;
+        evdata.character = character;
+
+        for(uint16_t i = 0; i < KBD_MAX_KEYPRESS_HANDLERS; i++) {
+            if(!_keypress_handlers[i]) break;
+            _keypress_handlers[i](evdata);
+        }
     }
     ps2_flush_data_port();
 }

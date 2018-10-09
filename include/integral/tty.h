@@ -35,12 +35,20 @@ typedef struct tty_attributes {
     vga_attrib_t statusbar;
 } tty_attributes_t;
 
+typedef struct tty_readline_status {
+    bool reading_line;
+    char* buffer;
+    uint32_t buffer_size;
+    uint32_t current_index;
+} tty_readline_status_t;
+
 typedef struct tty_terminal_info {
     uint8_t index;
     uint16_t* buffer;
     tty_cursor_t cursor;
     tty_colors_t colors;
     tty_attributes_t attributes;
+    tty_readline_status_t readline;
 } tty_terminal_info_t;
 
 typedef void (tty_post_init_callback_t)(tty_terminal_info_t* terminal);
@@ -56,7 +64,7 @@ tty_colors_t tty_get_colors(uint8_t terminal_index);
 void tty_set_statusbar_text(uint8_t terminal_index, const char* text);
 void tty_set_terminal(uint8_t index);
 void tty_update_hardware_cursor(tty_terminal_info_t* terminal, bool force);
-void tty_read_line(char* buffer, size_t count);
+void tty_read_line(uint8_t terminal_index, char* buffer, size_t count);
 tty_terminal_info_t* tty_get_terminal(uint8_t index);
 tty_terminal_info_t* tty_get_current_terminal(void);
 uint8_t tty_get_current_terminal_index(void);

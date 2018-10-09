@@ -15,8 +15,7 @@
 #error "This operating system kernel requires an i86 host machine."
 #endif
 
-#define INTEGRAL_VERSION "0.01 built at " __TIME__ " on "__DATE__
-#define INTEGRAL_COPYRIGHT "Copyright (C) 2016 \\[BCiastex\\X"
+#define INTEGRAL_VERSION "0.02 built at " __TIME__ " on "__DATE__
 
 #define TTY_KERNEL 7
 #define TTY_FAULTS 6

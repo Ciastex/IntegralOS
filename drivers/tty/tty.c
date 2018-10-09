@@ -8,6 +8,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <io/keyboard/keycodes.h>
+#include <io/keyboard/keyboard.h>
 #include <integral/tty.h>
 #include <display/vga.h>
 
@@ -16,13 +18,6 @@ static const vga_color_t TTY_DEFAULT_BUFFER_FG = COLOR_WHITE;
 static const vga_color_t TTY_DEFAULT_STATUSBAR_BG = COLOR_GREEN;
 static const vga_color_t TTY_DEFAULT_STATUSBAR_FG = COLOR_LIGHT_BROWN;
 
-/*static bool _reading_line = false;
-static char* _readline_buffer;
-static size_t _readline_count = 0;
-static size_t _readline_max = 0;
-static uint8_t _readline_framebuffer_index = 0;
-*/
-
 static void _tty_put_newline(tty_terminal_info_t* terminal);
 static vga_color_t _tty_determine_output_color(char character);
 
@@ -30,6 +25,9 @@ static uint8_t current_terminal_index = 0;
 static tty_terminal_info_t terminals[TTY_MAX_TERMINALS] = { 0 };
 
 static tty_on_switch_callback_t* _on_switch = 0;
+
+static uint16_t _tty_handler_id;
+static kbd_keypress_handler_t _tty_keypress_handler;
 
 void tty_init_terminals(tty_post_init_callback_t callback) {
     for(uint8_t i = 0; i < TTY_MAX_TERMINALS; i++) {
@@ -74,8 +72,9 @@ void tty_init_terminals(tty_post_init_callback_t callback) {
         if(callback)
             callback(&terminal);
     }
-
     current_terminal_index = 0;
+
+    _tty_handler_id = kbd_add_keypress_handler(&_tty_keypress_handler);
 }
 
 void tty_write_line(uint8_t terminal_index, const char *string) {
@@ -83,16 +82,17 @@ void tty_write_line(uint8_t terminal_index, const char *string) {
     tty_put_char(terminal_index, '\n');
 }
 
-/*void tty_read_line(char* buffer, size_t count) {
+void tty_read_line(uint8_t terminal_index, char* buffer, size_t count) {
     memset(buffer, 0, count);
-    _readline_buffer = buffer;
-    _readline_max = count;
-    _readline_count = 0;
-    _reading_line = true;
-    _readline_framebuffer_index = current_terminal_index;
+    tty_terminal_info_t* terminal = tty_get_terminal(terminal_index);
 
-    while(_reading_line);
-}*/
+    terminal->readline.reading_line = true;
+    terminal->readline.buffer = buffer;
+    terminal->readline.buffer_size = count;
+    terminal->readline.current_index = 0;
+
+    while(terminal->readline.reading_line);
+}
 
 void tty_write(uint8_t terminal_index, const char* string) {
     size_t length = strlen(string);
@@ -345,5 +345,44 @@ static vga_color_t _tty_determine_output_color(char character) {
             return COLOR_WHITE;
         default:
             return COLOR_BLACK;
+    }
+}
+
+static void _tty_keypress_handler(kbd_event_data_t data) {
+    if(data.pressed) {
+        switch(data.scancode) {
+            case VK_F1: tty_set_terminal(0); return;
+            case VK_F2: tty_set_terminal(1); return;
+            case VK_F3: tty_set_terminal(2); return;
+            case VK_F4: tty_set_terminal(3); return;
+            case VK_F5: tty_set_terminal(4); return;
+            case VK_F6: tty_set_terminal(5); return;
+            case VK_F7: tty_set_terminal(6); return;
+            case VK_F8: tty_set_terminal(7); return;
+            default: break;
+        }
+
+        if(terminals[current_terminal_index].readline.reading_line) {
+            switch(data.scancode) {
+                case VK_BKSPCE:
+                    if(terminals[current_terminal_index].readline.current_index > 0) {
+                        tty_put_char(current_terminal_index, '\b');
+                        terminals[current_terminal_index].readline.current_index--;
+                    }
+                    break;
+                case VK_RETURN:
+                    tty_put_char(current_terminal_index, '\n');
+                    terminals[current_terminal_index].readline.reading_line = false;
+                    break;
+                default:
+                    if(data.character < 0x20 || data.character > 0x7e) break;
+
+                    if(terminals[current_terminal_index].readline.current_index < terminals[current_terminal_index].readline.buffer_size) {
+                        terminals[current_terminal_index].readline.buffer[terminals[current_terminal_index].readline.current_index++] = data.character;
+                        tty_put_char(current_terminal_index, data.character);
+                    }
+                    break;
+            }
+        }
     }
 }
