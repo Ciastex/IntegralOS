@@ -49,16 +49,12 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
     if(bootloader_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         kpanic("Not loaded by a multiboot-compliant bootloader.", bootloader_magic, 0, 0);
     } else {
-        asm volatile("cli");
-
         _ke_init_gdt();
         _ke_init_idt();
         _ke_init_pic();
         _ke_init_pit();
         _ke_init_ps2();
         kbd_initialize();
-
-        asm volatile("sti");
 
         pit_set_callback((uintptr_t)&_ke_pit_callback);
         _ke_print_welcome_screen();
@@ -99,26 +95,26 @@ static void _ke_init_gdt(void) {
 static void _ke_init_idt(void) {
     idt_descriptor_t descriptor = idt_init_interrupt_descriptor_table();
 
-    isr_set_handler(DE_EXC_VECTOR, (uintptr_t)&division_by_zero_exception_handler);
-    isr_set_handler(BR_EXC_VECTOR, (uintptr_t)&bound_range_exceeded_exception_handler);
-    isr_set_handler(UD_EXC_VECTOR, (uintptr_t)&invalid_opcode_exception_handler);
-    isr_set_handler(NM_EXC_VECTOR, (uintptr_t)&device_not_available_exception_handler);
-    isr_set_handler(DF_EXC_VECTOR, (uintptr_t)&double_fault_exception_handler);
-    isr_set_handler(TS_EXC_VECTOR, (uintptr_t)&invalid_tss_exception_handler);
-    isr_set_handler(NP_EXC_VECTOR, (uintptr_t)&segment_not_present_exception_handler);
-    isr_set_handler(SS_EXC_VECTOR, (uintptr_t)&stack_segment_fault_exception_handler);
-    isr_set_handler(GP_EXC_VECTOR, (uintptr_t)&general_protection_fault_exception_handler);
-    isr_set_handler(PF_EXC_VECTOR, (uintptr_t)&page_fault_exception_handler);
-    isr_set_handler(MF_EXC_VECTOR, (uintptr_t)&x87_fpu_exception_handler);
-    isr_set_handler(AC_EXC_VECTOR, (uintptr_t)&alignment_check_exception_handler);
-    isr_set_handler(MC_EXC_VECTOR, (uintptr_t)&machine_check_exception_handler);
-    isr_set_handler(XF_EXC_VECTOR, (uintptr_t)&simd_fpu_exception_handler);
-    isr_set_handler(VE_EXC_VECTOR, (uintptr_t)&virtualization_exception_handler);
-    isr_set_handler(SX_EXC_VECTOR, (uintptr_t)&security_exception_handler);
+    isr_set_handler(DE_EXC_VECTOR, &division_by_zero_exception_handler);
+    isr_set_handler(BR_EXC_VECTOR, &bound_range_exceeded_exception_handler);
+    isr_set_handler(UD_EXC_VECTOR, &invalid_opcode_exception_handler);
+    isr_set_handler(NM_EXC_VECTOR, &device_not_available_exception_handler);
+    isr_set_handler(DF_EXC_VECTOR, &double_fault_exception_handler);
+    isr_set_handler(TS_EXC_VECTOR, &invalid_tss_exception_handler);
+    isr_set_handler(NP_EXC_VECTOR, &segment_not_present_exception_handler);
+    isr_set_handler(SS_EXC_VECTOR, &stack_segment_fault_exception_handler);
+    isr_set_handler(GP_EXC_VECTOR, &general_protection_fault_exception_handler);
+    isr_set_handler(PF_EXC_VECTOR, &page_fault_exception_handler);
+    isr_set_handler(MF_EXC_VECTOR, &x87_fpu_exception_handler);
+    isr_set_handler(AC_EXC_VECTOR, &alignment_check_exception_handler);
+    isr_set_handler(MC_EXC_VECTOR, &machine_check_exception_handler);
+    isr_set_handler(XF_EXC_VECTOR, &simd_fpu_exception_handler);
+    isr_set_handler(VE_EXC_VECTOR, &virtualization_exception_handler);
+    isr_set_handler(SX_EXC_VECTOR, &security_exception_handler);
 
-    isr_set_handler(DB_TRAP_VECTOR, (uintptr_t)&debug_trap_handler);
-    isr_set_handler(BP_TRAP_VECTOR, (uintptr_t)&breakpoint_trap_handler);
-    isr_set_handler(OF_TRAP_VECTOR, (uintptr_t)&overflow_trap_handler);
+    isr_set_handler(DB_TRAP_VECTOR, &debug_trap_handler);
+    isr_set_handler(BP_TRAP_VECTOR, &breakpoint_trap_handler);
+    isr_set_handler(OF_TRAP_VECTOR, &overflow_trap_handler);
 
     printf("_ke_init_idt: 0x%p\n", descriptor.address);
 }

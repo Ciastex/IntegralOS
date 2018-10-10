@@ -32,8 +32,6 @@
 #define IRQ_NUMBER_HDC  0x0E
 #define IRQ_NUMBER_RSD5 0x0F
 
-
-
 typedef struct irq_info {
     uint32_t gs, fs, es, ds;
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
@@ -41,7 +39,7 @@ typedef struct irq_info {
     uint32_t eip, cs, eflags, esp_user, ss;
 } irq_info_t;
 
-typedef void (* irq_func_ptr)(irq_info_t *irq_info);
+typedef void (irq_handler_t)(irq_info_t *irq_info);
 
 EXTERN_IRQ_HANDLER(32);
 EXTERN_IRQ_HANDLER(33);
@@ -60,7 +58,7 @@ EXTERN_IRQ_HANDLER(45);
 EXTERN_IRQ_HANDLER(46);
 
 void irq_handler(irq_info_t *irq);
-void irq_set_handler(uint32_t number, uintptr_t func_pointer);
+void irq_set_handler(uint32_t number, irq_handler_t* handler);
 uint32_t irq_get_spurious_count(void);
 
 #endif /* IRQ_H_ */

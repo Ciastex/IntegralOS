@@ -55,9 +55,9 @@ typedef struct isr_info {
     uint32_t eip, cs, eflags, esp_user, ss;
 } isr_info_t;
 
-typedef void (* isr_func_ptr)(isr_info_t *context);
+typedef void (isr_handler_t)(isr_info_t* context);
 
-void interrupt_handler(isr_info_t *context);
-void isr_set_handler(uint32_t interrupt_number, uintptr_t address);
+void interrupt_handler(isr_info_t* context);
+void isr_set_handler(uint32_t interrupt_number, isr_handler_t* handler);
 
 #endif /* ISR_H_ */

@@ -1,9 +1,3 @@
-#
-# File name: isr.S
-# Description: Low level interrupt service routine preambles.
-#
-# # # # #
-
 .macro ISR_NOCODE number
 	.global isr_handler_\number
 	isr_handler_\number:

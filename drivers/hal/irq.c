@@ -1,8 +1,3 @@
-/*
- * File name: irq.c
- * Description: IRQ handler and monitor
- *
- * * * */
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +8,7 @@
 #include <io/8259a/pic.h>
 
 static uint32_t spurious_irq_count = 0;
-static irq_func_ptr handlers[IRQ_MAX_HANDLERS] = { 0 };
+static irq_handler_t* handlers[IRQ_MAX_HANDLERS] = { 0 };
 
 void irq_handler(irq_info_t *irq_info) {
     uint16_t combined_isr_state = pic_get_combined_isr();
@@ -42,11 +37,11 @@ void irq_handler(irq_info_t *irq_info) {
     pic_send_eoi(irq_info->irq_number);
 }
 
-void irq_set_handler(uint32_t number, uintptr_t func_pointer) {
+void irq_set_handler(uint32_t number, irq_handler_t* handler) {
     if(number > IRQ_MAX_HANDLERS - 1) {
-        kpanic("Tried to define IRQ ISR index greater than 255.", number, func_pointer, 0);
+        kpanic("Tried to define IRQ ISR index greater than 255.", number, (uint32_t)handler, 0);
     }
-    handlers[number] = (irq_func_ptr)func_pointer;
+    handlers[number] = handler;
 }
 
 uint32_t irq_get_spurious_count(void) {

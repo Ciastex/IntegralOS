@@ -25,7 +25,7 @@ void kbd_initialize(void) {
     kbd_set_scancode_set(SCANCODE_SET_3);
     kbd_set_scanning(true);
 
-    irq_set_handler(1, (uintptr_t)&_kbd_internal);
+    irq_set_handler(1, &_kbd_internal);
 }
 
 uint16_t kbd_add_keypress_handler(kbd_keypress_handler_t* handler) {
