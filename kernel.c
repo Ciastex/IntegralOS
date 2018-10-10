@@ -1,9 +1,3 @@
-/*
- * File name: kernel.c
- * Description: Main kernel source file. Contains the entry point.
- *
- * * * */
-
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -68,9 +62,9 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
                 printf("yay!\n");
             }
 
-            char *statbar = { 0 };
-            sprintf(statbar, "last input: %s", buffer);
-            tty_set_statusbar_text(0, statbar);
+            char text[80] = { 0 };
+            sprintf(text, "last input: %s", buffer);
+            tty_set_statusbar_text(0, text);
         }
 
         for(;;);
@@ -137,7 +131,7 @@ static void _ke_init_ps2(void) {
 }
 
 static void _ke_pit_callback(void) {
-    char* text = { 0 };
+    char text[80] = { 0 };
 
     uint32_t total_ticks = pit_get_total_ticks();
     sprintf(text, "Total ticks since boot: %d", total_ticks);
@@ -161,7 +155,10 @@ static void _ke_tty_callback(tty_terminal_info_t* terminal) {
             COLOR_BLACK, COLOR_GREEN
         );
     } else {
-        tty_set_statusbar_text(terminal->index, "IntegralOS");
+        char status[80] = { 0 };
+
+        sprintf(status, "Integral OS | terminal #%d", terminal->index);
+        tty_set_statusbar_text(terminal->index, status);
     }
 }
 

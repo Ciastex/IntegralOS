@@ -29,11 +29,6 @@
 #define FLAGS_SIZE_32BIT             0x0040 // 0 - defines 16-bit protected mode; 1 - defines 32-bit protected mode
 #define FLAGS_GRANULARITY_4K         0x0080 // 0: 1 byte granularity; 1: 4 kilobyte granularity
 
-typedef struct gdt_descriptor {
-    uint16_t size;
-    uint32_t address;
-} __attribute((packed)) gdt_descriptor_t;
-
 typedef struct gdt_entry {
     uint16_t limit_low;
     uint16_t base_low;
@@ -42,6 +37,11 @@ typedef struct gdt_entry {
     uint8_t granularity;
     uint8_t base_high;
 } __attribute((packed)) gdt_entry_t;
+
+typedef struct gdt_descriptor {
+    uint16_t size;
+    gdt_entry_t* address;
+} __attribute((packed)) gdt_descriptor_t;
 
 gdt_entry_t gdt_create_entry(uint32_t base_addr, uint32_t limit, uint8_t access, uint8_t granularity);
 gdt_entry_t gdt_create_null_entry(void);

@@ -1,12 +1,14 @@
-#
-# File name: idt.S
-# Description: Low-level IDT replacement routine
-#
-# # # # #
+.intel_syntax noprefix
+.global idt_load_ll
 
-.global low_level_load_idt
+idt_load_ll:
+    cli
+    mov eax, [esp + 4]
+    lidt [eax]
+    ret
 
-low_level_load_idt:
-	mov 4(%esp), %eax
-	lidt (%eax)
-	ret
+#idt_load_ll:
+#   cli
+#   mov 4(%esp), %eax
+#   lidt (%eax)
+#   ret

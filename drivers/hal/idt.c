@@ -11,7 +11,7 @@
 #include <hal/isr.h>
 #include <hal/irq.h>
 
-extern void low_level_load_idt(uint32_t idt_pointer);
+extern void idt_load_ll(idt_descriptor_t* idt);
 
 static void populate_cpu_critical_exceptions(void);
 static void populate_irq_entries(void);
@@ -46,7 +46,7 @@ idt_descriptor_t idt_init_interrupt_descriptor_table(void) {
     idt_descriptor.address = (uint32_t)&idt_entries;
     idt_descriptor.size = (sizeof(idt_entry_t) * 256) - 1;
 
-    low_level_load_idt((uint32_t)&idt_descriptor);
+    idt_load_ll(&idt_descriptor);
     return idt_descriptor;
 }
 

@@ -10,7 +10,7 @@
 
 #include <hal/gdt.h>
 
-extern void low_level_load_gdt(uint32_t gdt_pointer);
+extern void gdt_load_ll(gdt_descriptor_t* descriptor);
 
 static gdt_descriptor_t gdt_descriptor;
 static gdt_entry_t gdt_entries[5];
@@ -71,10 +71,10 @@ gdt_descriptor_t gdt_init_global_descriptor_table(void) {
     gdt_entries[3] = gdt_create_userspace_entry(0x00000000, 0xFFFFF, true);
     gdt_entries[4] = gdt_create_userspace_entry(0x00000000, 0xFFFFF, false);
 
-    gdt_descriptor.address = (uint32_t)&gdt_entries;
+    gdt_descriptor.address = (gdt_entry_t*)&gdt_entries;
     gdt_descriptor.size = (sizeof(gdt_entry_t) * 5) - 1;
 
-    low_level_load_gdt((uint32_t)&gdt_descriptor);
+    gdt_load_ll(&gdt_descriptor);
 
     return gdt_descriptor;
 }
