@@ -32,11 +32,12 @@ static void _ke_init_idt(void);
 static void _ke_init_pic(void);
 static void _ke_init_pit(void);
 static void _ke_init_ps2(void);
+static void _ke_print_mbt(multiboot_info_t* info);
 static void _ke_pit_callback(void);
 static void _ke_tty_callback(tty_terminal_info_t* terminal);
 static void _ke_tty_switch_callback(tty_terminal_info_t* current, tty_terminal_info_t* prev);
 
-void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
+void kernel_init(multiboot_info_t* multiboot_info, uint32_t bootloader_magic) {
     tty_init_terminals(_ke_tty_callback);
     tty_set_on_switch_callback(&_ke_tty_switch_callback);
 
@@ -48,6 +49,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         _ke_init_pic();
         _ke_init_pit();
         _ke_init_ps2();
+        _ke_print_mbt(multiboot_info);
         kbd_initialize();
 
         pit_set_callback(&_ke_pit_callback);
@@ -61,7 +63,6 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
             if(!strcmp(buffer, "test")) {
                 printf("yay!\n");
             }
-
             tty_statprintf(0, "last input: %s", buffer);
         }
 
@@ -126,6 +127,54 @@ static void _ke_init_ps2(void) {
     printf("_ke_init_ps2: start\n");
     ps2_initialize();
     printf("_ke_init_ps2: done\n");
+}
+
+static void _ke_print_mbt(multiboot_info_t* info) {
+    if(MBTFLAG_MEM_VALID(info)) {
+        printf("_ke_print_mbt: got low/high memory values: low: %dK, high: %dK\n", info->memory_lower, info->memory_upper);
+    }
+
+    if(MBTFLAG_BOOTDEV_VALID(info)) {
+        printf("_ke_print_mbt: got bootdev number: %d\n", info->boot_device);
+    }
+
+    if(MBTFLAG_CMDLINE_VALID(info)) {
+        printf("_ke_print_mbt: got cmdline: %s\n", info->command_line);
+    }
+
+    if(MBTFLAG_SYMBOLS_VALID(info)) {
+        printf("_ke_print_mbt: got symbols: 0x%p\n", info->additional_info);
+    }
+
+    if(MBTFLAG_MEMMAP_VALID(info)) {
+        printf("_ke_print_mbt: got valid memory map: 0x%p, %d bytes long\n", info->memory_map, info->memory_map_length);
+    }
+
+    if(MBTFLAG_DRIVES_VALID(info)) {
+        printf("_ke_print_mbt: got some drive info: %0x%p, %d bytes long\n", info->drives_addr, info->drives_length);
+    }
+
+    if(MBTFLAG_BIOSCONF_VALID(info)) {
+        printf("_ke_print_mbt: bios config table detected: 0x%p\n", info->bios_config);
+    }
+
+    if(MBTFLAG_LDRNAME_VALID(info)) {
+        printf("_ke_print_mbt: we know what loaded us: %s\n", info->bootloader_name);
+    }
+
+    if(MBTFLAG_APMTABLE_VALID(info)) {
+        printf("_ke_print_mbt: apm table present: 0x%p", info->apm_info);
+    }
+
+    if(MBTFLAG_VBECTINFO_VALID(info)) {
+        printf("_ke_print_mbt: got vbe params: 0x%p", info->vbe_control_info);
+        printf("  vesa string: %s", info->vbe_control_info->signature);
+        printf("  vesa oem: %s", info->vbe_control_info->oem_name);
+    }
+
+    if(MBTFLAG_FRAMEBUFFER_VALID(info)) {
+        printf("_ke_print_mbt: got framebuffer: 0x%p");
+    }
 }
 
 static void _ke_pit_callback(void) {

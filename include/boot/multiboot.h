@@ -1,11 +1,7 @@
-/*
- * File name: multiboot.h
- * Description: The Multiboot standard header.
- *
- * * * */
-
 #ifndef MULTIBOOT_H_
 #define MULTIBOOT_H_
+
+#include <stdlib.h>
 
 #define MULTIBOOT_BOOTLOADER_MAGIC 0x2BADB002
 
@@ -14,6 +10,19 @@
 #define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE       3
 #define MULTIBOOT_MEMORY_NVS                    4
 #define MULTIBOOT_MEMORY_BADRAM                 5
+
+#define MBTFLAG_MEM_VALID(strct)         IS_BIT_SET(strct->flags, 0)
+#define MBTFLAG_BOOTDEV_VALID(strct)     IS_BIT_SET(strct->flags, 1)
+#define MBTFLAG_CMDLINE_VALID(strct)     IS_BIT_SET(strct->flags, 2)
+#define MBTFLAG_MODULES_VALID(strct)     IS_BIT_SET(strct->flags, 3)
+#define MBTFLAG_SYMBOLS_VALID(strct)     ((IS_BIT_SET(strct->flags, 4)) || (IS_BIT_SET(strct->flags, 5)))
+#define MBTFLAG_MEMMAP_VALID(strct)      IS_BIT_SET(strct->flags, 6)
+#define MBTFLAG_DRIVES_VALID(strct)      IS_BIT_SET(strct->flags, 7)
+#define MBTFLAG_BIOSCONF_VALID(strct)    IS_BIT_SET(strct->flags, 8)
+#define MBTFLAG_LDRNAME_VALID(strct)     IS_BIT_SET(strct->flags, 9)
+#define MBTFLAG_APMTABLE_VALID(strct)    IS_BIT_SET(strct->flags, 10)
+#define MBTFLAG_VBECTINFO_VALID(strct)   IS_BIT_SET(strct->flags, 11)
+#define MBTFLAG_FRAMEBUFFER_VALID(strct) IS_BIT_SET(strct->flags, 12)
 
 typedef uint8_t mbt_bios_featurebyte;
 
@@ -87,9 +96,15 @@ typedef struct mbt_vbe_control_info {
     uint16_t revision;
     char* oem_name;
     uint32_t capabilities;
-    uint32_t vesa_oem_pointer; // todo write struct for that??
-    uint16_t memory_block_count;
-};
+    uint32_t video_modes;
+    uint16_t video_memory_blocks;
+    uint16_t software_rev;
+    char* vendor_string;
+    char* product_name;
+    char* product_ver;
+    char reserved[222];
+    char oem_data[256];
+} __attribute__((packed)) mbt_vbe_control_info_t;
 
 typedef struct multiboot_info {
     uint32_t flags;
@@ -105,11 +120,18 @@ typedef struct multiboot_info {
     } additional_info;
     uint32_t memory_map_length;
     mbt_memory_map_t* memory_map;
+    uint32_t drives_length;
+    uint32_t drives_addr;
     mbt_bios_config_t* bios_config;
     char* bootloader_name;
     mbt_apm_info_t* apm_info;
-
-} multiboot_info_t;
+    mbt_vbe_control_info_t* vbe_control_info;
+    uint32_t vbe_mode_info;
+    uint16_t vbe_mode;
+    uint16_t vbe_interface_seg;
+    uint16_t vbe_interface_off;
+    uint16_t vbe_interface_len;
+} __attribute__((packed)) multiboot_info_t;
 
 
 
