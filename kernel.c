@@ -50,7 +50,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
         _ke_init_ps2();
         kbd_initialize();
 
-        pit_set_callback((uintptr_t)&_ke_pit_callback);
+        pit_set_callback(&_ke_pit_callback);
         _ke_print_welcome_screen();
 
         while(true) {
@@ -62,9 +62,7 @@ void kernel_init(multiboot_info_t *multiboot_info, uint32_t bootloader_magic) {
                 printf("yay!\n");
             }
 
-            char text[80] = { 0 };
-            sprintf(text, "last input: %s", buffer);
-            tty_set_statusbar_text(0, text);
+            tty_statprintf(0, "last input: %s", buffer);
         }
 
         for(;;);
@@ -131,12 +129,7 @@ static void _ke_init_ps2(void) {
 }
 
 static void _ke_pit_callback(void) {
-    char text[80] = { 0 };
-
-    uint32_t total_ticks = pit_get_total_ticks();
-    sprintf(text, "Total ticks since boot: %d", total_ticks);
-
-    tty_set_statusbar_text(TTY_KERNEL, text);
+    tty_statprintf(TTY_KERNEL, "Total ticks since boot: %d", pit_get_total_ticks());
 }
 
 static void _ke_tty_callback(tty_terminal_info_t* terminal) {
@@ -155,10 +148,7 @@ static void _ke_tty_callback(tty_terminal_info_t* terminal) {
             COLOR_BLACK, COLOR_GREEN
         );
     } else {
-        char status[80] = { 0 };
-
-        sprintf(status, "Integral OS | terminal #%d", terminal->index);
-        tty_set_statusbar_text(terminal->index, status);
+        tty_statprintf(terminal->index, "Integral OS Kernel | terminal #%d", terminal->index);
     }
 }
 

@@ -1,9 +1,3 @@
-/*
- * kernel.h
- * Kernel header file. Contains the kernel interface.
- *
- * * * */
-
 #ifndef KERNEL_H_
 #define KERNEL_H_
 
@@ -19,7 +13,5 @@
 
 #define TTY_KERNEL 7
 #define TTY_FAULTS 6
-
-void printk(uint8_t terminal_index, char* str, ...);
 
 #endif /* KERNEL_H_ */

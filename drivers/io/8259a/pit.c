@@ -14,19 +14,19 @@
 static void pit_internal_callback(irq_info_t *irq_info);
 
 static uint16_t current_frequency = 18;
-static uint32_t total_ticks = 0;
-static pit_callback_ptr pit_callback = 0;
+static size_t total_ticks = 0;
+static pit_callback_t* callback = 0;
 
 void pit_init(void) {
-    irq_set_handler(IRQ_NUMBER_PIT, (uintptr_t)&pit_internal_callback);
+    irq_set_handler(IRQ_NUMBER_PIT, &pit_internal_callback);
 }
 
-void pit_set_callback(uintptr_t address) {
-    pit_callback = (pit_callback_ptr)address;
+void pit_set_callback(pit_callback_t* address) {
+    callback = address;
 }
 
 void pit_unset_callback(void) {
-    pit_callback = 0;
+    callback = 0;
 }
 
 void pit_set_frequency(uint16_t frequency) {
@@ -44,14 +44,14 @@ uint16_t pit_get_current_frequency(void) {
     return current_frequency;
 }
 
-uint32_t pit_get_total_ticks(void) {
+size_t pit_get_total_ticks(void) {
     return total_ticks;
 }
 
 static void pit_internal_callback(irq_info_t *irq_info) {
     total_ticks++;
 
-    if(pit_callback) {
-        (*(pit_callback))();
+    if(callback) {
+        (*(callback))();
     }
 }

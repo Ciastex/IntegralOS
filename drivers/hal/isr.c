@@ -16,7 +16,6 @@ void isr_set_handler(uint32_t number, isr_handler_t* handler) {
     if(number >= ISR_MAX_HANDLERS - 1) {
         kpanic("Tried to define CPU ISR index greater than 255.", number, (uint32_t)handler, 0);
     }
-
     handlers[number] = handler;
 }
 

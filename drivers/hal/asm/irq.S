@@ -1,15 +1,11 @@
-#
-# File name: irq.S
-# Description: Low-level IRQ entry handlers
-#
-# # # # #
+.intel_syntax noprefix
 
 .macro IRQ_ENTRY irq h_no
 	.global irq_handler_\h_no
 	irq_handler_\h_no:
 		cli
-		pushl $0
-		pushl $\irq
+		push 0
+		push offset \irq
 		jmp irq_common_handler
 .endm
 
@@ -32,26 +28,54 @@ IRQ_ENTRY 15, 47
 
 .extern irq_handler
 irq_common_handler:
-	pusha
-	pushl %ds
-	pushl %es
-	pushl %fs
-	pushl %gs
-	mov $0x10, %ax
-	mov %ax, %ds
-	mov %ax, %es
-	mov %ax, %fs
-	mov %ax, %gs
-	mov %esp, %eax
-	push %eax
+    pusha
+    push ds
+    push es
+    push fs
+    push gs
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov eax, esp
+    push eax
 
-	call irq_handler
+    call irq_handler
 
-	popl %eax
-	popl %gs
-	popl %fs
-	popl %es
-	popl %ds
-	popa
-	add $8, %esp
-	iret
+    pop eax
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    popa
+    add esp, 8
+    iret
+
+#.extern irq_handler
+#irq_common_handler:
+#	pusha
+#	pushl %ds
+#	pushl %es
+#	pushl %fs
+#	pushl %gs
+#	mov $0x10, %ax
+#	mov %ax, %ds
+#	mov %ax, %es
+#	mov %ax, %fs
+#	mov %ax, %gs
+#	mov %esp, %eax
+#	push %eax
+#
+#	call irq_handler
+#
+#	popl %eax
+#	popl %gs
+#	popl %fs
+#	popl %es
+#	popl %ds
+#	popa
+#	add $8, %esp
+#	iret
+
+

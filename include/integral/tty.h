@@ -69,5 +69,6 @@ tty_terminal_info_t* tty_get_terminal(uint8_t index);
 tty_terminal_info_t* tty_get_current_terminal(void);
 uint8_t tty_get_current_terminal_index(void);
 void tty_set_on_switch_callback(tty_on_switch_callback_t* callback);
+void tty_statprintf(uint8_t terminal_index, const char* fmt, ...);
 
 #endif /* TTY_H_ */

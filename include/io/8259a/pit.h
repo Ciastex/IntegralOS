@@ -26,10 +26,10 @@
 #define PIT_CMD_COUNTER_1                    0x0040
 #define PIT_CMD_COUNTER_2                    0x0080
 
-typedef void (* pit_callback_ptr)(void);
+typedef void (pit_callback_t)(void);
 
 void pit_init(void);
-void pit_set_callback(uintptr_t address);
+void pit_set_callback(pit_callback_t* address);
 void pit_unset_callback(void);
 void pit_set_frequency(uint16_t frequency);
 uint16_t pit_get_current_frequency(void);

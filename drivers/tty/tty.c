@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #include <io/keyboard/keycodes.h>
 #include <io/keyboard/keyboard.h>
@@ -185,7 +187,7 @@ void tty_put_char(uint8_t terminal_index, char character) {
     tty_update_hardware_cursor(terminal, false);
 }
 
-void tty_set_statusbar_text(uint8_t terminal_index, const char *text) {
+void tty_set_statusbar_text(uint8_t terminal_index, const char* text) {
     tty_terminal_info_t* terminal = tty_get_terminal(terminal_index);
 
     size_t length = strlen(text);
@@ -200,6 +202,22 @@ void tty_set_statusbar_text(uint8_t terminal_index, const char *text) {
     for(size_t x = length; x < VGA_WIDTH; x++) {
         vga_put_char_at(terminal->buffer, x, VGA_HEIGHT - 1, terminal->attributes.statusbar, ' ');
     }
+}
+
+void tty_statprintf(uint8_t terminal_index, const char* fmt, ...) {
+    char text[255] = { 0 };
+
+    va_list args;
+    va_start(args, fmt);
+
+    // text will get truncated if format turns out to be more than 80
+    size_t len = vsprintf(text, fmt, args);
+    if(len > 80) {
+        text[79] = 0;
+    }
+    va_end(args);
+
+    tty_set_statusbar_text(terminal_index, text);
 }
 
 void tty_update_hardware_cursor(tty_terminal_info_t* terminal, bool force) {

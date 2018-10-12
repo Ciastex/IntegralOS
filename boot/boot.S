@@ -1,9 +1,3 @@
-#
-# File name: boot.S
-# Description: Basic multi-boot header set-up and jump to a higher-level C language.
-#
-# # # # #
-
 .set ALIGN,     1 << 0
 .set MEMINFO,   1 << 1
 .set FLAGS,     ALIGN | MEMINFO
